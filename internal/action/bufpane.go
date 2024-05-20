@@ -3,6 +3,7 @@ package action
 import (
 	"strings"
 	"time"
+	"log"
 
 	luar "layeh.com/gopher-luar"
 
@@ -555,6 +556,27 @@ func (h *BufPane) Bindings() *KeyTree {
 // sequence event). Returns false if no action found.
 func (h *BufPane) DoKeyEvent(e Event) bool {
 	binds := h.Bindings()
+	log.Println("DoKeyEvent called")
+
+	switch castedEvent := e.(type) {
+		case KeyEvent:
+			// TODO(NOW): Move this to HandleEvent instead
+			// For a key event that contains shift, it can be with or without shift mod
+			// For example, Ctrl-H or Ctrl-Shift-H
+			// Iterate the event we receive to all the representations until we match an action
+			// code: e.Key(),
+			// mod:  metaToAlt(e.Modifiers()),
+			// r:    e.Rune(),
+			// KeyEvent is just a wrapper of tcell.EventKey
+			// See https://github.com/gdamore/tcell/blob/main/key.go#L45
+			log.Println("KeyEvent!!")
+			
+			log.Println("castedEvent.code: ", castedEvent.code)
+			log.Println("castedEvent.mod: ", castedEvent.mod)
+			log.Println("castedEvent.r: ", string(castedEvent.r))
+	}
+	
+
 	action, more := binds.NextEvent(e, nil)
 	if action != nil && !more {
 		action(h)

@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"strings"
 	"unicode"
+	"log"
 
 	"github.com/zyedidia/json5"
 	"github.com/zyedidia/micro/v2/internal/config"
@@ -109,6 +110,9 @@ func BindKey(k, v string, bind func(e Event, a string)) {
 var r = regexp.MustCompile("<(.+?)>")
 
 func findEvents(k string) (b KeySequenceEvent, ok bool, err error) {
+	// log.Println("findEvents key: ", k)
+	// return nil, false, errors.New("findEventsCalled")
+
 	var events []Event = nil
 	for len(k) > 0 {
 		groups := r.FindStringSubmatchIndex(k)
@@ -117,6 +121,8 @@ func findEvents(k string) (b KeySequenceEvent, ok bool, err error) {
 			if events == nil {
 				events = make([]Event, 0, 3)
 			}
+
+			log.Println("Matched group: ", k[groups[2]:groups[3]])
 
 			e, ok := findSingleEvent(k[groups[2]:groups[3]])
 			if !ok {
