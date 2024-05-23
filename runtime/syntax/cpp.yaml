@@ -30,7 +30,7 @@ rules:
       # Parenthetical Color
     - symbol.brackets: "[(){}]|\\[|\\]"
       # Integer Literals
-    - constant.number: "(\\b([1-9][0-9']*|0[0-7']*|0[Xx][0-9a-fA-F']+|0[Bb][01]+)([Uu]?[Ll][Ll]?|[Ll][Ll]?[Uu]?)?\\b)"
+    - constant.number: "(\\b([1-9][0-9']*|0[0-7']*|0[Xx][0-9a-fA-F']+|0[Bb][01']+)([Uu]?[Ll][Ll]?|[Ll][Ll]?[Uu]?)?\\b)"
       # Decimal Floating-point Literals
     - constant.number: "(\\b(([0-9']*[.][0-9']+|[0-9']+[.][0-9']*)([Ee][+-]?[0-9']+)?|[0-9']+[Ee][+-]?[0-9']+)[FfLl]?\\b)"
       # Hexadecimal Floating-point Literals
@@ -47,9 +47,9 @@ rules:
     - constant.string:
         start: "'"
         end: "'"
-        skip: "\\\\."
+        skip: "(\\\\.)|(.*[^']$)"
         rules:
-            - error: "..+"
+            - error: "..+'"
             - constant.specialChar: "\\\\([\"'abfnrtv\\\\]|[0-3]?[0-7]{1,2}|x[0-9A-Fa-f]{1,2}|u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8})"
 
     - comment:
