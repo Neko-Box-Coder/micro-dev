@@ -1,10 +1,9 @@
 <img alt="micro logo" src="./assets/micro-logo-drop.svg" width="500px"/>
 
 > [!IMPORTANT]
-> This is just my personal development branch for [micro](https://github.com/zyedidia/micro)
+> This is just my personal development branch for [micro](https://github.com/zyedidia/micro) where many of my (and other) PRs are merged
 >
-> where many of my (and other) PRs are merged
-
+> To see the diff between this and upstream master, click [here](https://github.com/zyedidia/micro/compare/master...Neko-Box-Coder:micro-dev:dev)
 
 ![Test Workflow](https://github.com/zyedidia/micro/actions/workflows/test.yaml/badge.svg)
 [![Go Report Card](https://goreportcard.com/badge/github.com/zyedidia/micro)](https://goreportcard.com/report/github.com/zyedidia/micro)
