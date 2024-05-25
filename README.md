@@ -1,5 +1,11 @@
 <img alt="micro logo" src="./assets/micro-logo-drop.svg" width="500px"/>
 
+> [!IMPORTANT]
+> This is just my personal development branch for [micro](https://github.com/zyedidia/micro)
+>
+> where many of my (and other) PRs are merged
+
+
 ![Test Workflow](https://github.com/zyedidia/micro/actions/workflows/test.yaml/badge.svg)
 [![Go Report Card](https://goreportcard.com/badge/github.com/zyedidia/micro)](https://goreportcard.com/report/github.com/zyedidia/micro)
 [![Release](https://img.shields.io/github/release/zyedidia/micro.svg?label=Release)](https://github.com/zyedidia/micro/releases)
