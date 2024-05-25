@@ -3,7 +3,16 @@
 > [!IMPORTANT]
 > This is just my personal development branch for [micro](https://github.com/zyedidia/micro) where many of my (and other) PRs are merged
 >
+> ### Merged PRs
+> - [Fixing escape key getting filtered on Windows #3304](https://github.com/zyedidia/micro/pull/3304)
+> - [Reordered prompt done callback to avoid accessing out of bound history #3318](https://github.com/zyedidia/micro/pull/3318)
+> - [Changing syntax behavior for single quote to allow binary and hex literal separator #3310](https://github.com/zyedidia/micro/pull/3310)
+> - [Fix indent selection #3102](https://github.com/zyedidia/micro/pull/3102)
+>
 > To see the diff between this and upstream master, click [here](https://github.com/zyedidia/micro/compare/master...Neko-Box-Coder:micro-dev:dev)
+
+
+
 
 ![Test Workflow](https://github.com/zyedidia/micro/actions/workflows/test.yaml/badge.svg)
 [![Go Report Card](https://goreportcard.com/badge/github.com/zyedidia/micro)](https://goreportcard.com/report/github.com/zyedidia/micro)
