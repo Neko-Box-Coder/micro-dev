@@ -11,8 +11,13 @@
 >
 > To see the diff between this and upstream master, click [here](https://github.com/zyedidia/micro/compare/master...Neko-Box-Coder:micro-dev:dev)
 
+> ### TODO
+> - Create CI/CD pipeline to build and release for new changes
+> - Create alerts for new upstream changes
 
 
+> [!NOTE]
+> Below is the original readme
 
 ![Test Workflow](https://github.com/zyedidia/micro/actions/workflows/test.yaml/badge.svg)
 [![Go Report Card](https://goreportcard.com/badge/github.com/zyedidia/micro)](https://goreportcard.com/report/github.com/zyedidia/micro)
