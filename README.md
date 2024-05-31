@@ -4,6 +4,7 @@
 > This is just my personal development branch for [micro](https://github.com/zyedidia/micro) where many of my (and other) PRs are merged
 >
 > ### Merged PRs
+> - [Trailing line spaces being ignored by word- or subword-jumps #3321](https://github.com/zyedidia/micro/pull/3321)
 > - [Fixing escape key getting filtered on Windows #3304](https://github.com/zyedidia/micro/pull/3304)
 > - [Reordered prompt done callback to avoid accessing out of bound history #3318](https://github.com/zyedidia/micro/pull/3318)
 > - [Changing syntax behavior for single quote to allow binary and hex literal separator #3310](https://github.com/zyedidia/micro/pull/3310)
