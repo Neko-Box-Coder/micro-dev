@@ -20,3 +20,11 @@ jobs:
     - name: Test
       run: |
         make test
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: micro-${{ matrix.os }}-${{ github.sha }}
+        path: |
+          ./micro
+          ./micro.exe
+        compression-level: 9
