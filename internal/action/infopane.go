@@ -2,6 +2,7 @@ package action
 
 import (
 	"bytes"
+	"log"
 
 	"github.com/zyedidia/micro/v2/internal/buffer"
 	"github.com/zyedidia/micro/v2/internal/config"
@@ -23,6 +24,8 @@ func init() {
 
 func InfoMapEvent(k Event, action string) {
 	config.Bindings["command"][k.Name()] = action
+
+	log.Println("InfoMapEvent->config.Bindings: ", k.Name(), "to", action)
 
 	switch e := k.(type) {
 	case KeyEvent, KeySequenceEvent, RawEvent:

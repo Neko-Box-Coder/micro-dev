@@ -11,6 +11,8 @@ import (
 	"strings"
 	"unicode"
 	"runtime"
+	
+	"log"
 
 	"github.com/zyedidia/json5"
 	"github.com/zyedidia/micro/v2/internal/config"
@@ -32,6 +34,8 @@ func createBindingsIfNotExist(fname string) {
 
 // InitBindings intializes the bindings map by reading from bindings.json
 func InitBindings() {
+	log.Println("InitBindings Starts")
+
 	var parsed map[string]interface{}
 
 	filename := filepath.Join(config.ConfigDir, "bindings.json")
@@ -54,6 +58,7 @@ func InitBindings() {
 		defaults := DefaultBindings(p)
 
 		for k, v := range defaults {
+			log.Println("Default trying to bind: ", k, "to", v)
 			BindKey(k, v, bind)
 		}
 	}
@@ -61,6 +66,7 @@ func InitBindings() {
 	for k, v := range parsed {
 		switch val := v.(type) {
 		case string:
+			log.Println("Bindings 1 trying to bind: ", k, "to", val)
 			BindKey(k, val, Binder["buffer"])
 		case map[string]interface{}:
 			bind, ok := Binder[k]
@@ -73,6 +79,7 @@ func InitBindings() {
 				if !ok {
 					screen.TermMessage("Error reading bindings.json: non-string and non-map entry", k)
 				} else {
+					log.Println("Bindings 2 for pane ", k, " trying to bind: ", e, "to", s)					
 					BindKey(e, s, bind)
 				}
 			}
@@ -80,6 +87,8 @@ func InitBindings() {
 			screen.TermMessage("Error reading bindings.json: non-string and non-map entry", k)
 		}
 	}
+	
+	log.Println("InitBindings Ends")
 }
 
 func BindKey(k, v string, bind func(e Event, a string)) {
@@ -196,6 +205,7 @@ modSearch:
 		var r tcell.Key
 		// Special case for escape for unix, for some reason tcell doesn't send it with the esc character
 		if code < 256 && (runtime.GOOS == "windows" || code != 27) {
+		// if code < 256 && code != 27 {
 			r = code
 		}
 		return KeyEvent{
@@ -236,6 +246,13 @@ modSearch:
 }
 
 func findEvent(k string) (Event, error) {
+	
+	var hasBackspace bool = false
+	
+	if strings.Contains(k, "Backspace") {
+		hasBackspace = true
+	}
+	
 	var event Event
 	event, ok, err := findEvents(k)
 	if err != nil {
@@ -243,9 +260,17 @@ func findEvent(k string) (Event, error) {
 	}
 
 	if !ok {
+		if hasBackspace {
+			log.Println("Try to find single event for ", k)
+		}
+	
 		event, ok = findSingleEvent(k)
 		if !ok {
 			return nil, errors.New(k + " is not a bindable event")
+		}
+		
+		if hasBackspace {
+			log.Println("findSingleEvent returned ", event.Name())
 		}
 	}
 

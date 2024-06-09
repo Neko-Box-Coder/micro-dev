@@ -3,6 +3,7 @@ package action
 import (
 	"strings"
 	"time"
+	"log"
 
 	luar "layeh.com/gopher-luar"
 
@@ -91,6 +92,8 @@ func LuaAction(fn string, k Event) BufAction {
 // BufMapEvent maps an event to an action
 func BufMapEvent(k Event, action string) {
 	config.Bindings["buffer"][k.Name()] = action
+	
+	log.Println("BufMapEvent->config.Bindings: ", k.Name(), "to", action)
 
 	var actionfns []BufAction
 	var names []string
@@ -149,6 +152,11 @@ func BufMapEvent(k Event, action string) {
 		}
 		actionfns = append(actionfns, afn)
 	}
+	
+	for i:=0; i < len(names); i++ {
+		log.Println("BufMapEvent->names for", k.Name(), "is", names[i])
+	}
+	
 	bufAction := func(h *BufPane, te *tcell.EventMouse) bool {
 		cursors := h.Buf.GetCursors()
 		success := true
@@ -179,6 +187,9 @@ func BufMapEvent(k Event, action string) {
 
 	switch e := k.(type) {
 	case KeyEvent, KeySequenceEvent, RawEvent:
+		
+		// log.Println("BufMapEvent->RegisterKeyBinding: ", k.Name(), "to", action)
+		
 		BufBindings.RegisterKeyBinding(e, BufKeyActionGeneral(func(h *BufPane) bool {
 			return bufAction(h, nil)
 		}))
