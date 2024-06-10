@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 	"testing"
-	"runtime"
 
 	"github.com/go-errors/errors"
 	"github.com/stretchr/testify/assert"
@@ -334,13 +333,7 @@ func TestSearchAndReplace(t *testing.T) {
 	injectString(fmt.Sprintf("replace %s %s", "string", "foo"))
 	injectKey(tcell.KeyEnter, rune(tcell.KeyEnter), tcell.ModNone)
 	injectString("ynyny")
-
-	if runtime.GOOS == "windows" {
-		injectKey(tcell.KeyRune, 27, tcell.ModNone)
-	} else {
-		injectKey(tcell.KeyEscape, 0, tcell.ModNone)
-	}
-
+	injectKey(tcell.KeyEscape, 0, tcell.ModNone)
 	injectKey(tcell.KeyCtrlS, rune(tcell.KeyCtrlS), tcell.ModCtrl)
 
 	data, err = ioutil.ReadFile(file)

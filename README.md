@@ -4,7 +4,6 @@
 > This is just my personal development branch for [micro](https://github.com/zyedidia/micro) where many of my (and other) PRs are merged
 >
 > ### Merged Open PRs
-> - [Fixing escape key getting filtered on Windows #3304](https://github.com/zyedidia/micro/pull/3304)
 > - [Changing syntax behavior for single quote to allow binary and hex literal separator #3310](https://github.com/zyedidia/micro/pull/3310)
 > - [Fix indent selection #3102](https://github.com/zyedidia/micro/pull/3102)
 >
