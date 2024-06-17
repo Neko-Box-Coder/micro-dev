@@ -6,6 +6,7 @@
 > ### Merged Open PRs
 > - [Changing syntax behavior for single quote to allow binary and hex literal separator #3310](https://github.com/zyedidia/micro/pull/3310)
 > - [Fix indent selection #3102](https://github.com/zyedidia/micro/pull/3102)
+> - [Add wrapindent option to allow wrapping and hanging indents #3107](https://github.com/zyedidia/micro/pull/3107)
 >
 > To see the diff between this and upstream master, click [here](https://github.com/zyedidia/micro/compare/master...Neko-Box-Coder:micro-dev:dev)
 
