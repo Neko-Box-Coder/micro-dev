@@ -41,7 +41,7 @@ rules:
     - constant.string:
         start: "'"
         end: "'"
-        skip: "(\\\\.)|([^']{4}'[^']{4})"
+        skip: "(\\\\.)"
         rules:
               # TODO: Revert back to - error: "..+" once #3127 is merged
             - error: "[[:graph:]]{2,}'"
