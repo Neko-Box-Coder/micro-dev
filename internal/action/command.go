@@ -198,9 +198,6 @@ func (h *BufPane) TabMoveCmd(args []string) {
 	idxTo = util.Clamp(idxTo, 0, len(Tabs.List)-1)
 
 	activeTab := Tabs.List[idxFrom]
-	if len(activeTab.Panes) == 0 {
-		return
-	}
 	Tabs.RemoveTab(activeTab.Panes[0].ID())
 	Tabs.List = append(Tabs.List, nil)
 	copy(Tabs.List[idxTo+1:], Tabs.List[idxTo:])
