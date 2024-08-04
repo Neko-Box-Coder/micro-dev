@@ -140,7 +140,7 @@ func (pc PluginChannel) Fetch(out io.Writer) PluginPackages {
 
 	var repositories []PluginRepository
 	if err := decoder.Decode(&repositories); err != nil {
-		fmt.Fprintln(out, "Failed to decode channel data:\n", err)
+		fmt.Fprintln(out, "Failed to decode channel data", pc, ":\n", err)
 		return PluginPackages{}
 	}
 	return fetchAllSources(len(repositories), func(i int) PluginPackages {
@@ -163,7 +163,7 @@ func (pr PluginRepository) Fetch(out io.Writer) PluginPackages {
 
 	var plugins PluginPackages
 	if err := decoder.Decode(&plugins); err != nil {
-		fmt.Fprintln(out, "Failed to decode repository data for", pr, "with error:\n", err)
+		fmt.Fprintln(out, "Failed to decode repository data", pr, ":\n", err)
 		return PluginPackages{}
 	}
 	if len(plugins) > 0 {
