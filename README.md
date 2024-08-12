@@ -9,6 +9,9 @@
 > - [Add wrapindent option to allow wrapping and hanging indents #3107](https://github.com/zyedidia/micro/pull/3107)
 > - [add next/prev split/tab support for terminal pane #3165](https://github.com/zyedidia/micro/pull/3165)
 > - [Escape braces that are in string or comments when finding matching brace #3372](https://github.com/zyedidia/micro/pull/3372)
+> - [Exposing replacement functions for deprecated IOUtil functions #3393](https://github.com/zyedidia/micro/pull/3393)
+> - [Adding timeout when fetching plugin & more clear plugin error message #3389](https://github.com/zyedidia/micro/pull/3389)
+> - [Adding Jumping to opening and closing brace logic and actions #3384](https://github.com/zyedidia/micro/pull/3384)
 >
 > To see the diff between this and upstream master, click [here](https://github.com/zyedidia/micro/compare/master...Neko-Box-Coder:micro-dev:dev)
 
