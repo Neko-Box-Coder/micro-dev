@@ -9,7 +9,6 @@
 > - [Add wrapindent option to allow wrapping and hanging indents #3107](https://github.com/zyedidia/micro/pull/3107)
 > - [add next/prev split/tab support for terminal pane #3165](https://github.com/zyedidia/micro/pull/3165)
 > - [Escape braces that are in string or comments when finding matching brace #3372](https://github.com/zyedidia/micro/pull/3372)
-> - [ Adding selection for ParagraphPrevious and ParagraphNext. #3353](https://github.com/zyedidia/micro/pull/3353)
 >
 > To see the diff between this and upstream master, click [here](https://github.com/zyedidia/micro/compare/master...Neko-Box-Coder:micro-dev:dev)
 
