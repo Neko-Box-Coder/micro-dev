@@ -61,13 +61,34 @@ ft["zig"] = "// %s"
 ft["zscript"] = "// %s"
 ft["zsh"] = "# %s"
 
-function updateCommentType(buf)
-    if buf.Settings["commenttype"] == nil then
-        if ft[buf.Settings["filetype"]] ~= nil then
-            buf.Settings["commenttype"] = ft[buf.Settings["filetype"]]
+function updateCommentType(bp)
+    -- This is the first time doing comment in this bp
+    if bp.Settings["commentfiletype"] == nil then
+        -- If commenttype is not registered, use the comment table we have
+        if bp.Settings["commenttype"] == nil then
+            if ft[bp.Settings["filetype"]] ~= nil then
+                bp.Settings["commenttype"] = ft[bp.Settings["filetype"]]
+            else
+                bp.Settings["commenttype"] = "# %s"
+            end
+        -- Otherwise if the commenttype is registered, that means this is coming from the settings, 
+        -- or set manually by the user. We should update our comment table
         else
-            buf.Settings["commenttype"] = "# %s"
+            ft[bp.Settings["filetype"]] = bp.Settings["commenttype"]
         end
+        -- Update filetype
+        bp.Settings["commentfiletype"] = bp.Settings["filetype"]
+
+    -- Otherwise, check if the filetype has changed manually. If so, use the comment table
+    elseif bp.Settings["commentfiletype"] ~= bp.Settings["filetype"] then
+        if ft[bp.Settings["filetype"]] ~= nil then
+            bp.Settings["commenttype"] = ft[bp.Settings["filetype"]]
+        else
+            bp.Settings["commenttype"] = "# %s"
+        end
+
+        -- Update filetype
+        bp.Settings["commentfiletype"] = bp.Settings["filetype"]
     end
 end
 
