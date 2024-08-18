@@ -490,38 +490,92 @@ func (h *BufPane) SelectToEndOfLine() bool {
 	return true
 }
 
-// ParagraphPrevious moves the cursor to the previous empty line, or beginning of the buffer if there's none
-func (h *BufPane) ParagraphPrevious() bool {
+func (h *BufPane) paragraphPrevious() {
 	var line int
+	// Skip to the first non-empty line
 	for line = h.Cursor.Y; line > 0; line-- {
-		if len(h.Buf.LineBytes(line)) == 0 && line != h.Cursor.Y {
+		if len(h.Buf.LineBytes(line)) != 0 {
+			break
+		}
+	}
+	// Find the first empty line
+	for ; line > 0; line-- {
+		if len(h.Buf.LineBytes(line)) == 0 {
 			h.Cursor.X = 0
 			h.Cursor.Y = line
 			break
 		}
 	}
-	// If no empty line found. move cursor to end of buffer
+	// If no empty line was found, move the cursor to the start of the buffer
 	if line == 0 {
 		h.Cursor.Loc = h.Buf.Start()
 	}
+}
+
+func (h *BufPane) paragraphNext() {
+	var line int
+	// Skip to the first non-empty line
+	for line = h.Cursor.Y; line < h.Buf.LinesNum(); line++ {
+		if len(h.Buf.LineBytes(line)) != 0 {
+			break
+		}
+	}
+	// Find the first empty line
+	for ; line < h.Buf.LinesNum(); line++ {
+		if len(h.Buf.LineBytes(line)) == 0 {
+			h.Cursor.X = 0
+			h.Cursor.Y = line
+			break
+		}
+	}
+	// If no empty line was found, move the cursor to the end of the buffer
+	if line == h.Buf.LinesNum() {
+		h.Cursor.Loc = h.Buf.End()
+	}
+}
+
+// ParagraphPrevious moves the cursor to the first empty line that comes before
+// the paragraph closest to the cursor, or beginning of the buffer if there
+// isn't a paragraph
+func (h *BufPane) ParagraphPrevious() bool {
+	h.Cursor.Deselect(true)
+	h.paragraphPrevious()
 	h.Relocate()
 	return true
 }
 
-// ParagraphNext moves the cursor to the next empty line, or end of the buffer if there's none
+// ParagraphNext moves the cursor to the first empty line that comes after the
+// paragraph closest to the cursor, or end of the buffer if there isn't a
+// paragraph
 func (h *BufPane) ParagraphNext() bool {
-	var line int
-	for line = h.Cursor.Y; line < h.Buf.LinesNum(); line++ {
-		if len(h.Buf.LineBytes(line)) == 0 && line != h.Cursor.Y {
-			h.Cursor.X = 0
-			h.Cursor.Y = line
-			break
-		}
+	h.Cursor.Deselect(true)
+	h.paragraphNext()
+	h.Relocate()
+	return true
+}
+
+// SelectToParagraphPrevious selects to the first empty line that comes before
+// the paragraph closest to the cursor, or beginning of the buffer if there
+// isn't a paragraph
+func (h *BufPane) SelectToParagraphPrevious() bool {
+	if !h.Cursor.HasSelection() {
+		h.Cursor.OrigSelection[0] = h.Cursor.Loc
 	}
-	// If no empty line found. move cursor to end of buffer
-	if line == h.Buf.LinesNum() {
-		h.Cursor.Loc = h.Buf.End()
+	h.paragraphPrevious()
+	h.Cursor.SelectTo(h.Cursor.Loc)
+	h.Relocate()
+	return true
+}
+
+// SelectToParagraphNext selects to the first empty line that comes after the
+// paragraph closest to the cursor, or end of the buffer if there isn't a
+// paragraph
+func (h *BufPane) SelectToParagraphNext() bool {
+	if !h.Cursor.HasSelection() {
+		h.Cursor.OrigSelection[0] = h.Cursor.Loc
 	}
+	h.paragraphNext()
+	h.Cursor.SelectTo(h.Cursor.Loc)
 	h.Relocate()
 	return true
 }
@@ -1068,12 +1122,27 @@ func (h *BufPane) ToggleHighlightSearch() bool {
 
 // UnhighlightSearch unhighlights all instances of the last used search term
 func (h *BufPane) UnhighlightSearch() bool {
+	if !h.Buf.HighlightSearch {
+		return false
+	}
 	h.Buf.HighlightSearch = false
 	return true
 }
 
+// ResetSearch resets the last used search term
+func (h *BufPane) ResetSearch() bool {
+	if h.Buf.LastSearch != "" {
+		h.Buf.LastSearch = ""
+		return true
+	}
+	return false
+}
+
 // FindNext searches forwards for the last used search term
 func (h *BufPane) FindNext() bool {
+	if h.Buf.LastSearch == "" {
+		return false
+	}
 	// If the cursor is at the start of a selection and we search we want
 	// to search from the end of the selection in the case that
 	// the selection is a search result in which case we wouldn't move at
@@ -1100,6 +1169,9 @@ func (h *BufPane) FindNext() bool {
 
 // FindPrevious searches backwards for the last used search term
 func (h *BufPane) FindPrevious() bool {
+	if h.Buf.LastSearch == "" {
+		return false
+	}
 	// If the cursor is at the end of a selection and we search we want
 	// to search from the beginning of the selection in the case that
 	// the selection is a search result in which case we wouldn't move at
@@ -1148,7 +1220,9 @@ func (h *BufPane) DiffPrevious() bool {
 
 // Undo undoes the last action
 func (h *BufPane) Undo() bool {
-	h.Buf.Undo()
+	if !h.Buf.Undo() {
+		return false
+	}
 	InfoBar.Message("Undid action")
 	h.Relocate()
 	return true
@@ -1156,7 +1230,9 @@ func (h *BufPane) Undo() bool {
 
 // Redo redoes the last action
 func (h *BufPane) Redo() bool {
-	h.Buf.Redo()
+	if !h.Buf.Redo() {
+		return false
+	}
 	InfoBar.Message("Redid action")
 	h.Relocate()
 	return true
@@ -1396,10 +1472,14 @@ func (h *BufPane) paste(clip string) {
 func (h *BufPane) JumpToMatchingBrace() bool {
 	matchingBrace, left, found := h.Buf.FindMatchingBrace(h.Cursor.Loc)
 	if found {
-		if left {
-			h.Cursor.GotoLoc(matchingBrace)
+		if h.Buf.Settings["matchbraceleft"].(bool) {
+			if left {
+				h.Cursor.GotoLoc(matchingBrace)
+			} else {
+				h.Cursor.GotoLoc(matchingBrace.Move(1, h.Buf))
+			}
 		} else {
-			h.Cursor.GotoLoc(matchingBrace.Move(1, h.Buf))
+			h.Cursor.GotoLoc(matchingBrace)
 		}
 		h.Relocate()
 		return true
@@ -1577,10 +1657,9 @@ func (h *BufPane) ToggleRuler() bool {
 	return true
 }
 
-// ClearStatus clears the messenger bar
+// ClearStatus clears the infobar. It is an alias for ClearInfo.
 func (h *BufPane) ClearStatus() bool {
-	InfoBar.Message("")
-	return true
+	return h.ClearInfo()
 }
 
 // ToggleHelp toggles the help screen
@@ -1635,12 +1714,18 @@ func (h *BufPane) Escape() bool {
 
 // Deselect deselects on the current cursor
 func (h *BufPane) Deselect() bool {
+	if !h.Cursor.HasSelection() {
+		return false
+	}
 	h.Cursor.Deselect(true)
 	return true
 }
 
 // ClearInfo clears the infobar
 func (h *BufPane) ClearInfo() bool {
+	if InfoBar.Msg == "" {
+		return false
+	}
 	InfoBar.Message("")
 	return true
 }
@@ -1731,6 +1816,10 @@ func (h *BufPane) AddTab() bool {
 // PreviousTab switches to the previous tab in the tab list
 func (h *BufPane) PreviousTab() bool {
 	tabsLen := len(Tabs.List)
+	if tabsLen == 1 {
+		return false
+	}
+
 	a := Tabs.Active() + tabsLen
 	Tabs.SetActive((a - 1) % tabsLen)
 
@@ -1739,8 +1828,13 @@ func (h *BufPane) PreviousTab() bool {
 
 // NextTab switches to the next tab in the tab list
 func (h *BufPane) NextTab() bool {
+	tabsLen := len(Tabs.List)
+	if tabsLen == 1 {
+		return false
+	}
+
 	a := Tabs.Active()
-	Tabs.SetActive((a + 1) % len(Tabs.List))
+	Tabs.SetActive((a + 1) % tabsLen)
 
 	return true
 }
@@ -1776,6 +1870,10 @@ func (h *BufPane) Unsplit() bool {
 
 // NextSplit changes the view to the next split
 func (h *BufPane) NextSplit() bool {
+	if len(h.tab.Panes) == 1 {
+		return false
+	}
+
 	a := h.tab.active
 	if a < len(h.tab.Panes)-1 {
 		a++
@@ -1790,6 +1888,10 @@ func (h *BufPane) NextSplit() bool {
 
 // PreviousSplit changes the view to the previous split
 func (h *BufPane) PreviousSplit() bool {
+	if len(h.tab.Panes) == 1 {
+		return false
+	}
+
 	a := h.tab.active
 	if a > 0 {
 		a--
@@ -1991,6 +2093,9 @@ func (h *BufPane) MouseMultiCursor(e *tcell.EventMouse) bool {
 // SkipMultiCursor moves the current multiple cursor to the next available position
 func (h *BufPane) SkipMultiCursor() bool {
 	lastC := h.Buf.GetCursor(h.Buf.NumCursors() - 1)
+	if !lastC.HasSelection() {
+		return false
+	}
 	sel := lastC.GetSelection()
 	searchStart := lastC.CurSelection[1]
 
@@ -2026,8 +2131,11 @@ func (h *BufPane) RemoveMultiCursor() bool {
 		h.Buf.RemoveCursor(h.Buf.NumCursors() - 1)
 		h.Buf.SetCurCursor(h.Buf.NumCursors() - 1)
 		h.Buf.UpdateCursors()
-	} else {
+	} else if h.multiWord {
 		h.multiWord = false
+		h.Cursor.Deselect(true)
+	} else {
+		return false
 	}
 	h.Relocate()
 	return true
@@ -2035,8 +2143,12 @@ func (h *BufPane) RemoveMultiCursor() bool {
 
 // RemoveAllMultiCursors removes all cursors except the base cursor
 func (h *BufPane) RemoveAllMultiCursors() bool {
-	h.Buf.ClearCursors()
-	h.multiWord = false
+	if h.Buf.NumCursors() > 1 || h.multiWord {
+		h.Buf.ClearCursors()
+		h.multiWord = false
+	} else {
+		return false
+	}
 	h.Relocate()
 	return true
 }

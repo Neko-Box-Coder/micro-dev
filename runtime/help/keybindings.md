@@ -237,10 +237,14 @@ StartOfText
 StartOfTextToggle
 ParagraphPrevious
 ParagraphNext
+SelectToParagraphPrevious
+SelectToParagraphNext
 ToggleHelp
 ToggleDiffGutter
 ToggleRuler
 JumpLine
+ResetSearch
+ClearInfo
 ClearStatus
 ShellMode
 CommandMode
@@ -510,6 +514,8 @@ conventions for text editing defaults.
     "PageDown":       "CursorPageDown",
     "CtrlPageUp":     "PreviousTab",
     "CtrlPageDown":   "NextTab",
+    "ShiftPageUp":    "SelectPageUp",
+    "ShiftPageDown":  "SelectPageDown",
     "Ctrl-g":         "ToggleHelp",
     "Alt-g":          "ToggleKeyMenu",
     "Ctrl-r":         "ToggleRuler",
