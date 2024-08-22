@@ -3,6 +3,7 @@ VERSION = "1.0.0"
 local util = import("micro/util")
 local config = import("micro/config")
 local buffer = import("micro/buffer")
+local micro = import("micro")
 
 local ft = {}
 
@@ -62,6 +63,11 @@ ft["zscript"] = "// %s"
 ft["zsh"] = "# %s"
 
 function updateCommentType(buf)
+    if buf.Settings["commenttype"] ~= nil then
+        micro.InfoBar():Error("\"commenttype\" option has been updated to \"comment.type\"",
+                              "instead, please update accordingly")
+    end
+
     -- NOTE: Don't use SetOptionNative() to set "comment.type",
     -- otherwise "comment.type" can't be reset by a "filetype" change.
     if buf.Settings["comment.type"] == "" then
