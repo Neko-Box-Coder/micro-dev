@@ -64,8 +64,8 @@ ft["zsh"] = "# %s"
 
 function updateCommentType(buf)
     if buf.Settings["commenttype"] ~= nil then
-        micro.InfoBar():Error("\"commenttype\" option has been updated to \"comment.type\"",
-                              "instead, please update accordingly")
+        micro.InfoBar():Error("\"commenttype\" option has been renamed to \"comment.type\"",
+                              ", please update your configuration")
     end
 
     -- NOTE: Don't use SetOptionNative() to set "comment.type",
