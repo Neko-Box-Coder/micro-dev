@@ -63,14 +63,14 @@ ft["zscript"] = "// %s"
 ft["zsh"] = "# %s"
 
 function updateCommentType(buf)
-    if buf.Settings["commenttype"] ~= nil then
-        micro.InfoBar():Error("\"commenttype\" option has been renamed to \"comment.type\"",
-                              ", please update your configuration")
-    end
-
     -- NOTE: Don't use SetOptionNative() to set "comment.type",
     -- otherwise "comment.type" can't be reset by a "filetype" change.
     if buf.Settings["comment.type"] == "" then
+        if buf.Settings["commenttype"] ~= nil then
+            micro.InfoBar():Error("\"commenttype\" option has been renamed to \"comment.type\"",
+                                  ", please update your configuration")
+        end
+
         if ft[buf.Settings["filetype"]] ~= nil then
             buf.Settings["comment.type"] = ft[buf.Settings["filetype"]]
         else
