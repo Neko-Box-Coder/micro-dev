@@ -12,6 +12,7 @@
 > - [Exposing replacement functions for deprecated IOUtil functions #3393](https://github.com/zyedidia/micro/pull/3393)
 > - [Adding timeout when fetching plugin & more clear plugin error message #3389](https://github.com/zyedidia/micro/pull/3389)
 > - [Adding Jumping to opening and closing brace logic and actions #3384](https://github.com/zyedidia/micro/pull/3384)
+> - [Allowing plugin to add cursor in custom Loc #3441](https://github.com/zyedidia/micro/pull/3441)
 >
 > To see the diff between this and upstream master, click [here](https://github.com/zyedidia/micro/compare/master...Neko-Box-Coder:micro-dev:dev)
 
