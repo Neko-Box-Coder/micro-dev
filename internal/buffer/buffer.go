@@ -87,6 +87,8 @@ type SharedBuffer struct {
 
 	// Settings customized by the user
 	Settings map[string]interface{}
+	// LocalSettings customized by the user for this buffer only
+	LocalSettings map[string]bool
 
 	Suggestions   []string
 	Completions   []string
@@ -327,6 +329,7 @@ func NewBuffer(r io.Reader, size int64, path string, startcursor Loc, btype BufT
 		// assigning the filetype.
 		settings := config.DefaultCommonSettings()
 		b.Settings = config.DefaultCommonSettings()
+		b.LocalSettings = make(map[string]bool)
 		for k, v := range config.GlobalSettings {
 			if _, ok := config.DefaultGlobalOnlySettings[k]; !ok {
 				// make sure setting is not global-only
@@ -365,6 +368,9 @@ func NewBuffer(r io.Reader, size int64, path string, startcursor Loc, btype BufT
 				case "dos":
 					ff = FFDos
 				}
+			} else {
+				// in case of autodetection treat as locally set
+				b.LocalSettings["fileformat"] = true
 			}
 
 			b.LineArray = NewLineArray(uint64(size), ff, reader)
