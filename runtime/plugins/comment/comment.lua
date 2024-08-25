@@ -3,6 +3,7 @@ VERSION = "1.0.0"
 local util = import("micro/util")
 local config = import("micro/config")
 local buffer = import("micro/buffer")
+local micro = import("micro")
 
 local ft = {}
 
@@ -61,34 +62,20 @@ ft["zig"] = "// %s"
 ft["zscript"] = "// %s"
 ft["zsh"] = "# %s"
 
-function updateCommentType(bp)
-    -- This is the first time doing comment in this bp
-    if bp.Settings["commentfiletype"] == nil then
-        -- If commenttype is not registered, use the comment table we have
-        if bp.Settings["commenttype"] == nil then
-            if ft[bp.Settings["filetype"]] ~= nil then
-                bp.Settings["commenttype"] = ft[bp.Settings["filetype"]]
-            else
-                bp.Settings["commenttype"] = "# %s"
-            end
-        -- Otherwise if the commenttype is registered, that means this is coming from the settings, 
-        -- or set manually by the user. We should update our comment table
-        else
-            ft[bp.Settings["filetype"]] = bp.Settings["commenttype"]
-        end
-        -- Update filetype
-        bp.Settings["commentfiletype"] = bp.Settings["filetype"]
-
-    -- Otherwise, check if the filetype has changed manually. If so, use the comment table
-    elseif bp.Settings["commentfiletype"] ~= bp.Settings["filetype"] then
-        if ft[bp.Settings["filetype"]] ~= nil then
-            bp.Settings["commenttype"] = ft[bp.Settings["filetype"]]
-        else
-            bp.Settings["commenttype"] = "# %s"
+function updateCommentType(buf)
+    -- NOTE: Don't use SetOptionNative() to set "comment.type",
+    -- otherwise "comment.type" can't be reset by a "filetype" change.
+    if buf.Settings["comment.type"] == "" then
+        if buf.Settings["commenttype"] ~= nil then
+            micro.InfoBar():Error("\"commenttype\" option has been renamed to \"comment.type\"",
+                                  ", please update your configuration")
         end
 
-        -- Update filetype
-        bp.Settings["commentfiletype"] = bp.Settings["filetype"]
+        if ft[buf.Settings["filetype"]] ~= nil then
+            buf.Settings["comment.type"] = ft[buf.Settings["filetype"]]
+        else
+            buf.Settings["comment.type"] = "# %s"
+        end
     end
 end
 
@@ -105,7 +92,7 @@ function commentLine(bp, lineN, indentLen)
     updateCommentType(bp.Buf)
 
     local line = bp.Buf:Line(lineN)
-    local commentType = bp.Buf.Settings["commenttype"]
+    local commentType = bp.Buf.Settings["comment.type"]
     local sel = -bp.Cursor.CurSelection
     local curpos = -bp.Cursor.Loc
     local index = string.find(commentType, "%%s") - 1
@@ -131,7 +118,7 @@ function uncommentLine(bp, lineN, commentRegex)
     updateCommentType(bp.Buf)
 
     local line = bp.Buf:Line(lineN)
-    local commentType = bp.Buf.Settings["commenttype"]
+    local commentType = bp.Buf.Settings["comment.type"]
     local sel = -bp.Cursor.CurSelection
     local curpos = -bp.Cursor.Loc
     local index = string.find(commentType, "%%s") - 1
@@ -195,7 +182,7 @@ end
 function comment(bp, args)
     updateCommentType(bp.Buf)
 
-    local commentType = bp.Buf.Settings["commenttype"]
+    local commentType = bp.Buf.Settings["comment.type"]
     local commentRegex = "^%s*" .. commentType:gsub("%%","%%%%"):gsub("%$","%$"):gsub("%)","%)"):gsub("%(","%("):gsub("%?","%?"):gsub("%*", "%*"):gsub("%-", "%-"):gsub("%.", "%."):gsub("%+", "%+"):gsub("%]", "%]"):gsub("%[", "%["):gsub("%%%%s", "(.*)")
 
     if bp.Cursor:HasSelection() then
@@ -219,6 +206,10 @@ end
 
 function string.starts(String,Start)
     return string.sub(String,1,string.len(Start))==Start
+end
+
+function preinit()
+    config.RegisterCommonOption("comment", "type", "")
 end
 
 function init()
