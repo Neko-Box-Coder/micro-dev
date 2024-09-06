@@ -12,7 +12,6 @@
 > - [Exposing replacement functions for deprecated IOUtil functions #3393](https://github.com/zyedidia/micro/pull/3393)
 > - [Adding timeout when fetching plugin & more clear plugin error message #3389](https://github.com/zyedidia/micro/pull/3389)
 > - [Adding Jumping to opening and closing brace logic and actions #3384](https://github.com/zyedidia/micro/pull/3384)
-> - [Allowing plugin to add cursor in custom Loc #3441](https://github.com/zyedidia/micro/pull/3441)
 > - [Adding auto complete support for multi cursors #3442](https://github.com/zyedidia/micro/pull/3442)
 > - [Fixing comment plugin not using user settings when overriding default setting #3424](https://github.com/zyedidia/micro/pull/3424)
 >
