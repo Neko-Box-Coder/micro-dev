@@ -50,22 +50,6 @@ To see more screenshots of micro, showcasing some of the default color schemes, 
  
 You can also check out the website for Micro at https://micro-editor.github.io.
 
-## Table of Contents
-
-- [Features](#features)
-- [Installation](#installation)
-  - [Prebuilt binaries](#pre-built-binaries)
-  - [Package Managers](#package-managers)
-  - [Building from source](#building-from-source)
-  - [Fully static binary](#fully-static-binary)
-  - [macOS terminal](#macos-terminal)
-  - [Linux clipboard support](#linux-clipboard-support)
-  - [Colors and syntax highlighting](#colors-and-syntax-highlighting)
-  - [Cygwin, Mingw, Plan9](#cygwin-mingw-plan9)
-- [Usage](#usage)
-- [Documentation and Help](#documentation-and-help)
-- [Contributing](#contributing)
-
 - - -
 
 ## Features
@@ -117,7 +101,7 @@ Pre-built binaries are distributed in [releases](https://github.com/zyedidia/mic
 
 To uninstall micro, simply remove the binary, and the configuration directory at `~/.config/micro`.
 
-#### Quick-install script
+#### Third-party quick-install script
 
 ```bash
 curl https://getmic.ro | bash
@@ -207,7 +191,7 @@ Without these tools installed, micro will use an internal clipboard for copy and
 
 If your operating system does not have a binary release, but does run Go, you can build from source.
 
-Make sure that you have Go version 1.16 or greater and Go modules are enabled.
+Make sure that you have Go version 1.17 or greater and Go modules are enabled.
 
 ```
 git clone https://github.com/zyedidia/micro

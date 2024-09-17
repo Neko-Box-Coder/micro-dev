@@ -233,11 +233,8 @@ type BufPane struct {
 	lastClickTime time.Time
 	lastLoc       buffer.Loc
 
-	// lastCutTime stores when the last ctrl+k was issued.
-	// It is used for clearing the clipboard to replace it with fresh cut lines.
-	lastCutTime time.Time
-
-	// freshClip returns true if the clipboard has never been pasted.
+	// freshClip returns true if one or more lines have been cut to the clipboard
+	// and have never been pasted yet.
 	freshClip bool
 
 	// Was the last mouse event actually a double click?
@@ -663,9 +660,13 @@ func (h *BufPane) DoRuneInsert(r rune) {
 func (h *BufPane) VSplitIndex(buf *buffer.Buffer, right bool) *BufPane {
 	e := NewBufPaneFromBuf(buf, h.tab)
 	e.splitID = MainTab().GetNode(h.splitID).VSplit(right)
-	MainTab().Panes = append(MainTab().Panes, e)
+	currentPaneIdx := MainTab().GetPane(h.splitID)
+	if right {
+		currentPaneIdx++
+	}
+	MainTab().AddPane(e, currentPaneIdx)
 	MainTab().Resize()
-	MainTab().SetActive(len(MainTab().Panes) - 1)
+	MainTab().SetActive(currentPaneIdx)
 	return e
 }
 
@@ -673,9 +674,13 @@ func (h *BufPane) VSplitIndex(buf *buffer.Buffer, right bool) *BufPane {
 func (h *BufPane) HSplitIndex(buf *buffer.Buffer, bottom bool) *BufPane {
 	e := NewBufPaneFromBuf(buf, h.tab)
 	e.splitID = MainTab().GetNode(h.splitID).HSplit(bottom)
-	MainTab().Panes = append(MainTab().Panes, e)
+	currentPaneIdx := MainTab().GetPane(h.splitID)
+	if bottom {
+		currentPaneIdx++
+	}
+	MainTab().AddPane(e, currentPaneIdx)
 	MainTab().Resize()
-	MainTab().SetActive(len(MainTab().Panes) - 1)
+	MainTab().SetActive(currentPaneIdx)
 	return e
 }
 
@@ -780,6 +785,7 @@ var BufKeyActions = map[string]BufKeyAction{
 	"CopyLine":                  (*BufPane).CopyLine,
 	"Cut":                       (*BufPane).Cut,
 	"CutLine":                   (*BufPane).CutLine,
+	"Duplicate":                 (*BufPane).Duplicate,
 	"DuplicateLine":             (*BufPane).DuplicateLine,
 	"DeleteLine":                (*BufPane).DeleteLine,
 	"MoveLinesUp":               (*BufPane).MoveLinesUp,
@@ -824,8 +830,12 @@ var BufKeyActions = map[string]BufKeyAction{
 	"AddTab":                    (*BufPane).AddTab,
 	"PreviousTab":               (*BufPane).PreviousTab,
 	"NextTab":                   (*BufPane).NextTab,
+	"FirstTab":                  (*BufPane).FirstTab,
+	"LastTab":                   (*BufPane).LastTab,
 	"NextSplit":                 (*BufPane).NextSplit,
 	"PreviousSplit":             (*BufPane).PreviousSplit,
+	"FirstSplit":                (*BufPane).FirstSplit,
+	"LastSplit":                 (*BufPane).LastSplit,
 	"Unsplit":                   (*BufPane).Unsplit,
 	"VSplit":                    (*BufPane).VSplitAction,
 	"HSplit":                    (*BufPane).HSplitAction,
@@ -841,6 +851,7 @@ var BufKeyActions = map[string]BufKeyAction{
 	"RemoveMultiCursor":         (*BufPane).RemoveMultiCursor,
 	"RemoveAllMultiCursors":     (*BufPane).RemoveAllMultiCursors,
 	"SkipMultiCursor":           (*BufPane).SkipMultiCursor,
+	"SkipMultiCursorBack":       (*BufPane).SkipMultiCursorBack,
 	"JumpToMatchingBrace":       (*BufPane).JumpToMatchingBrace,
 	"JumpToOpeningBrace":        (*BufPane).JumpToOpeningBrace,
 	"JumpToClosingBrace":        (*BufPane).JumpToClosingBrace,
@@ -909,6 +920,7 @@ var MultiActions = map[string]bool{
 	"Copy":                      true,
 	"Cut":                       true,
 	"CutLine":                   true,
+	"Duplicate":                 true,
 	"DuplicateLine":             true,
 	"DeleteLine":                true,
 	"MoveLinesUp":               true,
