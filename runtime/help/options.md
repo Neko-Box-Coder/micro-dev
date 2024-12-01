@@ -172,6 +172,13 @@ Here are the available options:
     default value: `unknown`. This will be automatically overridden depending
     on the file you open.
 
+* `helpsplit`: sets the split type to be used by the `help` command.
+   Possible values:
+    * `vsplit`: open help in a vertical split pane
+    * `hsplit`: open help in a horizontal split pane
+
+    default value: `hsplit`
+
 * `hlsearch`: highlight all instances of the searched text after a successful
    search. This highlighting can be temporarily turned off via the
    `UnhighlightSearch` action (triggered by the Esc key by default) or toggled
@@ -277,6 +284,13 @@ Here are the available options:
     * `hsplit`: open files stacked top to bottom.
 
     default value: `tab`
+
+* `pageoverlap`: the number of lines from the current view to keep in view
+   when paging up or down. If this is set to 2, for instance, and you page
+   down, the last two lines of the previous page will be the first two lines
+   of the next page.
+
+    default value: `2`
 
 * `paste`: treat characters sent from the terminal in a single chunk as a paste
    event rather than a series of manual key presses. If you are pasting using

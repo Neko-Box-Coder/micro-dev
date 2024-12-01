@@ -160,6 +160,52 @@ func (h *BufPane) Center() bool {
 	return true
 }
 
+// CursorToViewTop moves the cursor to the top of the view,
+// offset by scrollmargin unless at the beginning or end of the file
+func (h *BufPane) CursorToViewTop() bool {
+	v := h.GetView()
+	h.Buf.ClearCursors()
+	scrollmargin := int(h.Buf.Settings["scrollmargin"].(float64))
+	bStart := display.SLoc{0, 0}
+	if v.StartLine == bStart {
+		scrollmargin = 0
+	}
+	h.Cursor.GotoLoc(h.LocFromVLoc(display.VLoc{
+		SLoc:    h.Scroll(v.StartLine, scrollmargin),
+		VisualX: 0,
+	}))
+	return true
+}
+
+// CursorToViewCenter moves the cursor to the center of the view
+func (h *BufPane) CursorToViewCenter() bool {
+	v := h.GetView()
+	h.Buf.ClearCursors()
+	h.Cursor.GotoLoc(h.LocFromVLoc(display.VLoc{
+		SLoc:    h.Scroll(v.StartLine, h.BufView().Height/2),
+		VisualX: 0,
+	}))
+	return true
+}
+
+// CursorToViewBottom moves the cursor to the bottom of the view,
+// offset by scrollmargin unless at the beginning or end of the file
+func (h *BufPane) CursorToViewBottom() bool {
+	v := h.GetView()
+	h.Buf.ClearCursors()
+	scrollmargin := int(h.Buf.Settings["scrollmargin"].(float64))
+	bEnd := h.SLocFromLoc(h.Buf.End())
+	lastLine := h.Scroll(v.StartLine, h.BufView().Height-1)
+	if lastLine == bEnd {
+		scrollmargin = 0
+	}
+	h.Cursor.GotoLoc(h.LocFromVLoc(display.VLoc{
+		SLoc:    h.Scroll(lastLine, -scrollmargin),
+		VisualX: 0,
+	}))
+	return true
+}
+
 // MoveCursorUp is not an action
 func (h *BufPane) MoveCursorUp(n int) {
 	if !h.Buf.Settings["softwrap"].(bool) {
@@ -170,10 +216,10 @@ func (h *BufPane) MoveCursorUp(n int) {
 		if sloc == vloc.SLoc {
 			// we are at the beginning of buffer
 			h.Cursor.Loc = h.Buf.Start()
-			h.Cursor.LastVisualX = 0
+			h.Cursor.StoreVisualX()
 		} else {
 			vloc.SLoc = sloc
-			vloc.VisualX = h.Cursor.LastVisualX
+			vloc.VisualX = h.Cursor.LastWrappedVisualX
 			h.Cursor.Loc = h.LocFromVLoc(vloc)
 		}
 	}
@@ -189,11 +235,10 @@ func (h *BufPane) MoveCursorDown(n int) {
 		if sloc == vloc.SLoc {
 			// we are at the end of buffer
 			h.Cursor.Loc = h.Buf.End()
-			vloc = h.VLocFromLoc(h.Cursor.Loc)
-			h.Cursor.LastVisualX = vloc.VisualX
+			h.Cursor.StoreVisualX()
 		} else {
 			vloc.SLoc = sloc
-			vloc.VisualX = h.Cursor.LastVisualX
+			vloc.VisualX = h.Cursor.LastWrappedVisualX
 			h.Cursor.Loc = h.LocFromVLoc(vloc)
 		}
 	}
@@ -657,7 +702,7 @@ func (h *BufPane) InsertNewline() bool {
 			h.Buf.Remove(buffer.Loc{X: 0, Y: h.Cursor.Y - 1}, buffer.Loc{X: util.CharacterCount(line), Y: h.Cursor.Y - 1})
 		}
 	}
-	h.Cursor.LastVisualX = h.Cursor.GetVisualX()
+	h.Cursor.StoreVisualX()
 	h.Relocate()
 	return true
 }
@@ -687,7 +732,7 @@ func (h *BufPane) Backspace() bool {
 			h.Buf.Remove(loc.Move(-1, h.Buf), loc)
 		}
 	}
-	h.Cursor.LastVisualX = h.Cursor.GetVisualX()
+	h.Cursor.StoreVisualX()
 	h.Relocate()
 	return true
 }
@@ -888,7 +933,7 @@ func (h *BufPane) InsertTab() bool {
 	b := h.Buf
 	indent := b.IndentString(util.IntOpt(b.Settings["tabsize"]))
 	tabBytes := len(indent)
-	bytesUntilIndent := tabBytes - (h.Cursor.GetVisualX() % tabBytes)
+	bytesUntilIndent := tabBytes - (h.Cursor.GetVisualX(false) % tabBytes)
 	b.Insert(h.Cursor.Loc, indent[:bytesUntilIndent])
 	h.Relocate()
 	return true
@@ -1254,7 +1299,13 @@ func (h *BufPane) selectLines() int {
 	} else {
 		h.Cursor.SelectLine()
 	}
-	return h.Cursor.CurSelection[1].Y - h.Cursor.CurSelection[0].Y
+
+	nlines := h.Cursor.CurSelection[1].Y - h.Cursor.CurSelection[0].Y
+	if nlines == 0 && h.Cursor.HasSelection() {
+		// selected last line and it is not empty
+		nlines++
+	}
+	return nlines
 }
 
 // Copy the selection to the system clipboard
@@ -1274,6 +1325,7 @@ func (h *BufPane) Copy() bool {
 func (h *BufPane) CopyLine() bool {
 	origLoc := h.Cursor.Loc
 	origLastVisualX := h.Cursor.LastVisualX
+	origLastWrappedVisualX := h.Cursor.LastWrappedVisualX
 	origSelection := h.Cursor.CurSelection
 
 	nlines := h.selectLines()
@@ -1290,6 +1342,7 @@ func (h *BufPane) CopyLine() bool {
 
 	h.Cursor.Loc = origLoc
 	h.Cursor.LastVisualX = origLastVisualX
+	h.Cursor.LastWrappedVisualX = origLastWrappedVisualX
 	h.Cursor.CurSelection = origSelection
 	h.Relocate()
 	return true
@@ -1359,6 +1412,7 @@ func (h *BufPane) DuplicateLine() bool {
 	if h.Cursor.HasSelection() {
 		origLoc := h.Cursor.Loc
 		origLastVisualX := h.Cursor.LastVisualX
+		origLastWrappedVisualX := h.Cursor.LastWrappedVisualX
 		origSelection := h.Cursor.CurSelection
 
 		start := h.Cursor.CurSelection[0]
@@ -1379,6 +1433,7 @@ func (h *BufPane) DuplicateLine() bool {
 
 		h.Cursor.Loc = origLoc
 		h.Cursor.LastVisualX = origLastVisualX
+		h.Cursor.LastWrappedVisualX = origLastWrappedVisualX
 		h.Cursor.CurSelection = origSelection
 
 		if start.Y < end.Y {
@@ -1635,63 +1690,77 @@ func (h *BufPane) End() bool {
 
 // PageUp scrolls the view up a page
 func (h *BufPane) PageUp() bool {
-	h.ScrollUp(h.BufView().Height)
+	pageOverlap := int(h.Buf.Settings["pageoverlap"].(float64))
+	h.ScrollUp(h.BufView().Height - pageOverlap)
 	return true
 }
 
 // PageDown scrolls the view down a page
 func (h *BufPane) PageDown() bool {
-	h.ScrollDown(h.BufView().Height)
+	pageOverlap := int(h.Buf.Settings["pageoverlap"].(float64))
+	h.ScrollDown(h.BufView().Height - pageOverlap)
 	h.ScrollAdjust()
 	return true
 }
 
 // SelectPageUp selects up one page
 func (h *BufPane) SelectPageUp() bool {
+	pageOverlap := int(h.Buf.Settings["pageoverlap"].(float64))
+	scrollAmount := h.BufView().Height - pageOverlap
 	if !h.Cursor.HasSelection() {
 		h.Cursor.OrigSelection[0] = h.Cursor.Loc
 	}
-	h.MoveCursorUp(h.BufView().Height)
+	h.MoveCursorUp(scrollAmount)
 	h.Cursor.SelectTo(h.Cursor.Loc)
+	if h.Cursor.Num == 0 {
+		h.ScrollUp(scrollAmount)
+	}
 	h.Relocate()
 	return true
 }
 
 // SelectPageDown selects down one page
 func (h *BufPane) SelectPageDown() bool {
+	pageOverlap := int(h.Buf.Settings["pageoverlap"].(float64))
+	scrollAmount := h.BufView().Height - pageOverlap
 	if !h.Cursor.HasSelection() {
 		h.Cursor.OrigSelection[0] = h.Cursor.Loc
 	}
-	h.MoveCursorDown(h.BufView().Height)
+	h.MoveCursorDown(scrollAmount)
 	h.Cursor.SelectTo(h.Cursor.Loc)
+	if h.Cursor.Num == 0 {
+		h.ScrollDown(scrollAmount)
+		h.ScrollAdjust()
+	}
 	h.Relocate()
 	return true
 }
 
-// CursorPageUp places the cursor a page up
+// CursorPageUp places the cursor a page up,
+// moving the view to keep cursor at the same relative position in the view
 func (h *BufPane) CursorPageUp() bool {
 	h.Cursor.Deselect(true)
-
-	if h.Cursor.HasSelection() {
-		h.Cursor.Loc = h.Cursor.CurSelection[0]
-		h.Cursor.ResetSelection()
-		h.Cursor.StoreVisualX()
+	pageOverlap := int(h.Buf.Settings["pageoverlap"].(float64))
+	scrollAmount := h.BufView().Height - pageOverlap
+	h.MoveCursorUp(scrollAmount)
+	if h.Cursor.Num == 0 {
+		h.ScrollUp(scrollAmount)
 	}
-	h.MoveCursorUp(h.BufView().Height)
 	h.Relocate()
 	return true
 }
 
-// CursorPageDown places the cursor a page up
+// CursorPageDown places the cursor a page down,
+// moving the view to keep cursor at the same relative position in the view
 func (h *BufPane) CursorPageDown() bool {
 	h.Cursor.Deselect(false)
-
-	if h.Cursor.HasSelection() {
-		h.Cursor.Loc = h.Cursor.CurSelection[1]
-		h.Cursor.ResetSelection()
-		h.Cursor.StoreVisualX()
+	pageOverlap := int(h.Buf.Settings["pageoverlap"].(float64))
+	scrollAmount := h.BufView().Height - pageOverlap
+	h.MoveCursorDown(scrollAmount)
+	if h.Cursor.Num == 0 {
+		h.ScrollDown(scrollAmount)
+		h.ScrollAdjust()
 	}
-	h.MoveCursorDown(h.BufView().Height)
 	h.Relocate()
 	return true
 }
@@ -1744,7 +1813,8 @@ func (h *BufPane) ToggleHelp() bool {
 	if h.Buf.Type == buffer.BTHelp {
 		h.Quit()
 	} else {
-		h.openHelp("help")
+		hsplit := config.GlobalSettings["helpsplit"] == "hsplit"
+		h.openHelp("help", hsplit, false)
 	}
 	return true
 }
@@ -2078,35 +2148,20 @@ func (h *BufPane) SpawnCursorAtLoc(loc buffer.Loc) *buffer.Cursor {
 // SpawnMultiCursorUpN is not an action
 func (h *BufPane) SpawnMultiCursorUpN(n int) bool {
 	lastC := h.Buf.GetCursor(h.Buf.NumCursors() - 1)
-	var c *buffer.Cursor
-	if !h.Buf.Settings["softwrap"].(bool) {
-		if n > 0 && lastC.Y == 0 {
-			return false
-		}
-		if n < 0 && lastC.Y+1 == h.Buf.LinesNum() {
-			return false
-		}
-
-		h.Buf.DeselectCursors()
-
-		c = buffer.NewCursor(h.Buf, buffer.Loc{lastC.X, lastC.Y - n})
-		c.LastVisualX = lastC.LastVisualX
-		c.X = c.GetCharPosInLine(h.Buf.LineBytes(c.Y), c.LastVisualX)
-		c.Relocate()
-	} else {
-		vloc := h.VLocFromLoc(lastC.Loc)
-		sloc := h.Scroll(vloc.SLoc, -n)
-		if sloc == vloc.SLoc {
-			return false
-		}
-
-		h.Buf.DeselectCursors()
-
-		vloc.SLoc = sloc
-		vloc.VisualX = lastC.LastVisualX
-		c = buffer.NewCursor(h.Buf, h.LocFromVLoc(vloc))
-		c.LastVisualX = lastC.LastVisualX
+	if n > 0 && lastC.Y == 0 {
+		return false
 	}
+	if n < 0 && lastC.Y+1 == h.Buf.LinesNum() {
+		return false
+	}
+
+	h.Buf.DeselectCursors()
+
+	c := buffer.NewCursor(h.Buf, buffer.Loc{lastC.X, lastC.Y - n})
+	c.LastVisualX = lastC.LastVisualX
+	c.LastWrappedVisualX = lastC.LastWrappedVisualX
+	c.X = c.GetCharPosInLine(h.Buf.LineBytes(c.Y), c.LastVisualX)
+	c.Relocate()
 
 	h.Buf.AddCursor(c)
 	h.Buf.SetCurCursor(h.Buf.NumCursors() - 1)
