@@ -18,7 +18,7 @@ import (
 	"github.com/zyedidia/micro/v2/internal/screen"
 	"github.com/zyedidia/micro/v2/internal/shell"
 	"github.com/zyedidia/micro/v2/internal/util"
-	"github.com/zyedidia/tcell/v2"
+	"github.com/micro-editor/tcell/v2"
 )
 
 // ScrollUp is not an action
@@ -44,6 +44,14 @@ func (h *BufPane) ScrollAdjust() {
 		v.StartLine = h.Scroll(end, -h.BufView().Height+1)
 	}
 	h.SetView(v)
+}
+
+// ScrollReachedEnd returns true if the view is at the end of the buffer,
+// i.e. the last line of the buffer is in the view.
+func (h *BufPane) ScrollReachedEnd() bool {
+	v := h.GetView()
+	end := h.SLocFromLoc(h.Buf.End())
+	return h.Diff(v.StartLine, end) < h.BufView().Height
 }
 
 // MousePress is the event that should happen when a normal click happens
@@ -254,8 +262,13 @@ func (h *BufPane) CursorUp() bool {
 
 // CursorDown moves the cursor down
 func (h *BufPane) CursorDown() bool {
+	selectionEndNewline := h.Cursor.HasSelection() && h.Cursor.CurSelection[1].X == 0
 	h.Cursor.Deselect(false)
-	h.MoveCursorDown(1)
+	if selectionEndNewline {
+		h.Cursor.Start()
+	} else {
+		h.MoveCursorDown(1)
+	}
 	h.Relocate()
 	return true
 }
@@ -289,7 +302,6 @@ func (h *BufPane) CursorLeft() bool {
 func (h *BufPane) CursorRight() bool {
 	if h.Cursor.HasSelection() {
 		h.Cursor.Deselect(false)
-		h.Cursor.Right()
 	} else {
 		tabstospaces := h.Buf.Settings["tabstospaces"].(bool)
 		tabmovement := h.Buf.Settings["tabmovement"].(bool)
@@ -1198,6 +1210,14 @@ func (h *BufPane) FindNext() bool {
 	match, found, err := h.Buf.FindNext(h.Buf.LastSearch, h.Buf.Start(), h.Buf.End(), searchLoc, true, h.Buf.LastSearchRegex)
 	if err != nil {
 		InfoBar.Error(err)
+	} else if found && searchLoc == match[0] && match[0] == match[1] {
+		// skip empty match at present cursor location
+		if searchLoc == h.Buf.End() {
+			searchLoc = h.Buf.Start()
+		} else {
+			searchLoc = searchLoc.Move(1, h.Buf)
+		}
+		match, found, _ = h.Buf.FindNext(h.Buf.LastSearch, h.Buf.Start(), h.Buf.End(), searchLoc, true, h.Buf.LastSearchRegex)
 	}
 	if found {
 		h.Cursor.SetSelectionStart(match[0])
@@ -1227,6 +1247,14 @@ func (h *BufPane) FindPrevious() bool {
 	match, found, err := h.Buf.FindNext(h.Buf.LastSearch, h.Buf.Start(), h.Buf.End(), searchLoc, false, h.Buf.LastSearchRegex)
 	if err != nil {
 		InfoBar.Error(err)
+	} else if found && searchLoc == match[0] && match[0] == match[1] {
+		// skip empty match at present cursor location
+		if searchLoc == h.Buf.Start() {
+			searchLoc = h.Buf.End()
+		} else {
+			searchLoc = searchLoc.Move(-1, h.Buf)
+		}
+		match, found, _ = h.Buf.FindNext(h.Buf.LastSearch, h.Buf.Start(), h.Buf.End(), searchLoc, false, h.Buf.LastSearchRegex)
 	}
 	if found {
 		h.Cursor.SetSelectionStart(match[0])
@@ -1728,7 +1756,7 @@ func (h *BufPane) SelectPageDown() bool {
 	}
 	h.MoveCursorDown(scrollAmount)
 	h.Cursor.SelectTo(h.Cursor.Loc)
-	if h.Cursor.Num == 0 {
+	if h.Cursor.Num == 0 && !h.ScrollReachedEnd() {
 		h.ScrollDown(scrollAmount)
 		h.ScrollAdjust()
 	}
@@ -1753,13 +1781,20 @@ func (h *BufPane) CursorPageUp() bool {
 // CursorPageDown places the cursor a page down,
 // moving the view to keep cursor at the same relative position in the view
 func (h *BufPane) CursorPageDown() bool {
+	selectionEndNewline := h.Cursor.HasSelection() && h.Cursor.CurSelection[1].X == 0
 	h.Cursor.Deselect(false)
 	pageOverlap := int(h.Buf.Settings["pageoverlap"].(float64))
 	scrollAmount := h.BufView().Height - pageOverlap
+	if selectionEndNewline {
+		scrollAmount--
+	}
 	h.MoveCursorDown(scrollAmount)
-	if h.Cursor.Num == 0 {
+	if h.Cursor.Num == 0 && !h.ScrollReachedEnd() {
 		h.ScrollDown(scrollAmount)
 		h.ScrollAdjust()
+	}
+	if selectionEndNewline {
+		h.Cursor.Start()
 	}
 	h.Relocate()
 	return true
@@ -1896,6 +1931,13 @@ func (h *BufPane) ForceQuit() bool {
 // Quit this will close the current tab or view that is open
 func (h *BufPane) Quit() bool {
 	if h.Buf.Modified() {
+		for _, b := range buffer.OpenBuffers {
+			if b != h.Buf && b.SharedBuffer == h.Buf.SharedBuffer {
+				h.ForceQuit()
+				return true
+			}
+		}
+
 		if config.GlobalSettings["autosave"].(float64) > 0 {
 			// autosave on means we automatically save when quitting
 			h.SaveCB("Quit", func() {

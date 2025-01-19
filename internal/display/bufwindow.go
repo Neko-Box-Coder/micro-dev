@@ -8,7 +8,7 @@ import (
 	"github.com/zyedidia/micro/v2/internal/config"
 	"github.com/zyedidia/micro/v2/internal/screen"
 	"github.com/zyedidia/micro/v2/internal/util"
-	"github.com/zyedidia/tcell/v2"
+	"github.com/micro-editor/tcell/v2"
 )
 
 // The BufWindow provides a way of displaying a certain section of a buffer.
@@ -450,7 +450,7 @@ func (w *BufWindow) displayBuffer() {
 
 		currentLine := false
 		for _, c := range cursors {
-			if bloc.Y == c.Y && w.active {
+			if !c.HasSelection() && bloc.Y == c.Y && w.active {
 				currentLine = true
 				break
 			}
