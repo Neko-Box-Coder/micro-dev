@@ -230,6 +230,7 @@ func (h *BufPane) TabMoveCmd(args []string) {
 	Tabs.List[idxTo] = activeTab
 	Tabs.UpdateNames()
 	Tabs.SetActive(idxTo)
+	Tabs.Resize()
 	// InfoBar.Message(fmt.Sprintf("Moved tab from slot %d to %d", idxFrom+1, idxTo+1))
 }
 
