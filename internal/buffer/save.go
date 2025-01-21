@@ -232,6 +232,10 @@ func (b *Buffer) saveToFile(filename string, withSudo bool, autoSave bool) error
 	absPath, _ := filepath.Abs(filename)
 	b.AbsPath = absPath
 	b.isModified = false
+	ft := b.FileType()
 	b.UpdateRules()
+	if b.FileType() != ft {
+		b.ReloadSettings(true)
+	}
 	return err
 }
