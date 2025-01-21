@@ -16,6 +16,7 @@
 > - [Fixing comment plugin not using user settings when overriding default setting #3424](https://github.com/zyedidia/micro/pull/3424)
 > - [Add the ability lock settings.json and bindings.json for plugins #3618](https://github.com/zyedidia/micro/pull/3618)
 > - [Add missing resize in TabMove #3619](https://github.com/zyedidia/micro/pull/3619)
+> - [Fixing settings not being applied when saving as a new file #3625](https://github.com/zyedidia/micro/pull/3625)
 >
 > To see the diff between this and upstream master, click [here](https://github.com/zyedidia/micro/compare/master...Neko-Box-Coder:micro-dev:dev)
 
