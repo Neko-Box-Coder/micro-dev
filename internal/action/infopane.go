@@ -3,12 +3,12 @@ package action
 import (
 	"bytes"
 
+	"github.com/micro-editor/tcell/v2"
 	"github.com/zyedidia/micro/v2/internal/buffer"
 	"github.com/zyedidia/micro/v2/internal/config"
 	"github.com/zyedidia/micro/v2/internal/display"
 	"github.com/zyedidia/micro/v2/internal/info"
 	"github.com/zyedidia/micro/v2/internal/util"
-	"github.com/micro-editor/tcell/v2"
 )
 
 type InfoKeyAction func(*InfoPane)
@@ -193,11 +193,19 @@ func (h *InfoPane) CommandComplete() {
 	b := h.Buf
 	c := b.GetActiveCursor()
 
+	cc := buffer.AutocompleteCursorCheck(c)
+	rc := buffer.AutocompleteRuneCheck(c)
+
 	// Cycling commands
-	if !buffer.AutocompleteCheck(c) {
+	if !b.HasSuggestions && !cc && !rc {
 		return
 	}
+
 	if b.HasSuggestions {
+		if !cc {
+			return
+		}
+
 		prevSuggestion := b.CycleAutocomplete(true)
 		b.PerformSingleAutocomplete(prevSuggestion, c)
 		return

@@ -11,6 +11,7 @@ import (
 	"time"
 
 	shellquote "github.com/kballard/go-shellquote"
+	"github.com/micro-editor/tcell/v2"
 	"github.com/zyedidia/micro/v2/internal/buffer"
 	"github.com/zyedidia/micro/v2/internal/clipboard"
 	"github.com/zyedidia/micro/v2/internal/config"
@@ -18,7 +19,6 @@ import (
 	"github.com/zyedidia/micro/v2/internal/screen"
 	"github.com/zyedidia/micro/v2/internal/shell"
 	"github.com/zyedidia/micro/v2/internal/util"
-	"github.com/micro-editor/tcell/v2"
 )
 
 // ScrollUp is not an action
@@ -901,19 +901,17 @@ func (h *BufPane) OutdentSelection() bool {
 // Autocomplete cycles the suggestions and performs autocompletion if there are suggestions
 func (h *BufPane) Autocomplete() bool {
 	b := h.Buf
+	cc := buffer.AutocompleteCursorCheck(h.Cursor)
+	rc := buffer.AutocompleteRuneCheck(h.Cursor)
 
 	// Don't autocomplete at all if the active cursor cannot be autocomplete
-	if !buffer.AutocompleteCheck(h.Cursor) {
-		return false
-	}
-
-	if !b.HasSuggestions && !b.StartAutocomplete(buffer.BufferComplete) {
+	if !b.HasSuggestions && (!rc || !cc || !b.StartAutocomplete(buffer.BufferComplete)) {
 		return false
 	}
 
 	prevSuggestion := b.CycleAutocomplete(true)
 	for i := 0; i < b.NumCursors(); i++ {
-		if buffer.AutocompleteCheck(b.GetCursor(i)) {
+		if buffer.AutocompleteCursorCheck(b.GetCursor(i)) {
 			b.PerformSingleAutocomplete(prevSuggestion, b.GetCursor(i))
 		}
 	}
@@ -931,7 +929,7 @@ func (h *BufPane) CycleAutocompleteBack() bool {
 	if b.HasSuggestions {
 		prevSuggestion := b.CycleAutocomplete(false)
 		for i := 0; i < b.NumCursors(); i++ {
-			if buffer.AutocompleteCheck(b.GetCursor(i)) {
+			if buffer.AutocompleteCursorCheck(b.GetCursor(i)) {
 				b.PerformSingleAutocomplete(prevSuggestion, b.GetCursor(i))
 			}
 		}
