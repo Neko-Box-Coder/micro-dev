@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -69,8 +68,8 @@ var defaultCommonSettings = map[string]interface{}{
 	"hlsearch":        false,
 	"hltaberrors":     false,
 	"hltrailingws":    false,
-	"incsearch":       true,
 	"ignorecase":      true,
+	"incsearch":       true,
 	"indentchar":      " ",
 	"keepautoindent":  false,
 	"matchbrace":      true,
@@ -80,10 +79,10 @@ var defaultCommonSettings = map[string]interface{}{
 	"pageoverlap":     float64(2),
 	"permbackup":      false,
 	"readonly":        false,
+	"relativeruler":   false,
 	"reload":          "prompt",
 	"rmtrailingws":    false,
 	"ruler":           true,
-	"relativeruler":   false,
 	"savecursor":      false,
 	"saveundo":        false,
 	"scrollbar":       false,
@@ -93,7 +92,7 @@ var defaultCommonSettings = map[string]interface{}{
 	"softwrap":        false,
 	"splitbottom":     true,
 	"splitright":      true,
-	"statusformatl":   "$(filename) $(modified)($(line),$(col)) $(status.paste)| ft:$(opt:filetype) | $(opt:fileformat) | $(opt:encoding)",
+	"statusformatl":   "$(filename) $(modified)$(overwrite)($(line),$(col)) $(status.paste)| ft:$(opt:filetype) | $(opt:fileformat) | $(opt:encoding)",
 	"statusformatr":   "$(bind:ToggleKeyMenu): bindings, $(bind:ToggleHelp): help",
 	"statusline":      true,
 	"syntax":          true,
@@ -158,6 +157,10 @@ var (
 	// because they have been temporarily set for this session only
 	VolatileSettings map[string]bool
 )
+
+func writeFile(name string, txt []byte) error {
+	return util.SafeWrite(name, txt, false)
+}
 
 func init() {
 	ModifiedSettings = make(map[string]bool)
@@ -225,7 +228,7 @@ func ReadSettings() error {
 	parsedSettings = make(map[string]interface{})
 	filename := filepath.Join(ConfigDir, "settings.json")
 	if _, e := os.Stat(filename); e == nil {
-		input, err := ioutil.ReadFile(filename)
+		input, err := os.ReadFile(filename)
 		if err != nil {
 			settingsParseError = true
 			return errors.New("Error reading settings.json file: " + err.Error())
@@ -291,22 +294,31 @@ func InitGlobalSettings() error {
 	return err
 }
 
-// InitLocalSettings scans the json in settings.json and sets the options locally based
-// on whether the filetype or path matches ft or glob local settings
+// UpdatePathGlobLocals scans the already parsed settings and sets the options locally
+// based on whether the path matches a glob
 // Must be called after ReadSettings
-func InitLocalSettings(settings map[string]interface{}, path string) {
+func UpdatePathGlobLocals(settings map[string]interface{}, path string) {
 	for k, v := range parsedSettings {
-		if strings.HasPrefix(reflect.TypeOf(v).String(), "map") {
-			if strings.HasPrefix(k, "ft:") {
-				if settings["filetype"].(string) == k[3:] {
-					for k1, v1 := range v.(map[string]interface{}) {
-						settings[k1] = v1
-					}
+		if strings.HasPrefix(reflect.TypeOf(v).String(), "map") && !strings.HasPrefix(k, "ft:") {
+			g, _ := glob.Compile(k)
+			if g.MatchString(path) {
+				for k1, v1 := range v.(map[string]interface{}) {
+					settings[k1] = v1
 				}
-			} else {
-				g, _ := glob.Compile(k)
-				if g.MatchString(path) {
-					for k1, v1 := range v.(map[string]interface{}) {
+			}
+		}
+	}
+}
+
+// UpdateFileTypeLocals scans the already parsed settings and sets the options locally
+// based on whether the filetype matches to "ft:"
+// Must be called after ReadSettings
+func UpdateFileTypeLocals(settings map[string]interface{}, filetype string) {
+	for k, v := range parsedSettings {
+		if strings.HasPrefix(reflect.TypeOf(v).String(), "map") && strings.HasPrefix(k, "ft:") {
+			if filetype == k[3:] {
+				for k1, v1 := range v.(map[string]interface{}) {
+					if k1 != "filetype" {
 						settings[k1] = v1
 					}
 				}
@@ -350,7 +362,8 @@ func WriteSettings(filename string) error {
 		}
 
 		txt, _ := json.MarshalIndent(parsedSettings, "", "    ")
-		err = ioutil.WriteFile(filename, append(txt, '\n'), 0644)
+		txt = append(txt, '\n')
+		err = writeFile(filename, txt)
 	}
 	return err
 }
@@ -371,8 +384,9 @@ func OverwriteSettings(filename string) error {
 			}
 		}
 
-		txt, _ := json.MarshalIndent(settings, "", "    ")
-		err = ioutil.WriteFile(filename, append(txt, '\n'), 0644)
+		txt, _ := json.MarshalIndent(parsedSettings, "", "    ")
+		txt = append(txt, '\n')
+		err = writeFile(filename, txt)
 	}
 	return err
 }

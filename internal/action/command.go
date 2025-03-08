@@ -228,6 +228,7 @@ func (h *BufPane) TabMoveCmd(args []string) {
 	Tabs.List = append(Tabs.List, nil)
 	copy(Tabs.List[idxTo+1:], Tabs.List[idxTo:])
 	Tabs.List[idxTo] = activeTab
+	Tabs.Resize()
 	Tabs.UpdateNames()
 	Tabs.SetActive(idxTo)
 	Tabs.Resize()
@@ -688,7 +689,16 @@ func SetGlobalOptionNative(option string, nativeValue interface{}) error {
 		delete(b.LocalSettings, option)
 	}
 
-	return config.WriteSettings(filepath.Join(config.ConfigDir, "settings.json"))
+	err := config.WriteSettings(filepath.Join(config.ConfigDir, "settings.json"))
+	if err != nil {
+		if errors.Is(err, util.ErrOverwrite) {
+			screen.TermMessage(err)
+			err = errors.Unwrap(err)
+		}
+		return err
+	}
+
+	return nil
 }
 
 func SetGlobalOptionPlug(option, value string) error {
@@ -820,7 +830,11 @@ func (h *BufPane) BindCmd(args []string) {
 
 	_, err := TryBindKey(parseKeyArg(args[0]), args[1], true)
 	if err != nil {
-		InfoBar.Error(err)
+		if errors.Is(err, util.ErrOverwrite) {
+			screen.TermMessage(err)
+		} else {
+			InfoBar.Error(err)
+		}
 	}
 }
 
@@ -833,7 +847,11 @@ func (h *BufPane) UnbindCmd(args []string) {
 
 	err := UnbindKey(parseKeyArg(args[0]))
 	if err != nil {
-		InfoBar.Error(err)
+		if errors.Is(err, util.ErrOverwrite) {
+			screen.TermMessage(err)
+		} else {
+			InfoBar.Error(err)
+		}
 	}
 }
 
@@ -927,7 +945,10 @@ func (h *BufPane) SaveCmd(args []string) {
 	if len(args) == 0 {
 		h.Save()
 	} else {
-		h.Buf.SaveAs(args[0])
+		err := h.Buf.SaveAs(args[0])
+		if err != nil {
+			InfoBar.Error(err)
+		}
 	}
 }
 

@@ -1002,6 +1002,9 @@ func (h *BufPane) SaveAsCB(action string, callback func()) bool {
 						h.completeAction(action)
 						return
 					}
+				} else {
+					InfoBar.Error(err)
+					return
 				}
 			} else {
 				InfoBar.YNPrompt(
@@ -1038,7 +1041,6 @@ func (h *BufPane) saveBufToFile(filename string, action string, callback func())
 				if err != nil {
 					InfoBar.Error(err)
 				} else {
-					h.Buf.Path = filename
 					h.Buf.SetName(filename)
 					InfoBar.Message("Saved " + filename)
 					if callback != nil {
@@ -1064,7 +1066,6 @@ func (h *BufPane) saveBufToFile(filename string, action string, callback func())
 			InfoBar.Error(err)
 		}
 	} else {
-		h.Buf.Path = filename
 		h.Buf.SetName(filename)
 		InfoBar.Message("Saved " + filename)
 		if callback != nil {
@@ -1815,12 +1816,12 @@ func (h *BufPane) HalfPageDown() bool {
 
 // ToggleDiffGutter turns the diff gutter off and on
 func (h *BufPane) ToggleDiffGutter() bool {
-	if !h.Buf.Settings["diffgutter"].(bool) {
-		h.Buf.Settings["diffgutter"] = true
+	diffgutter := !h.Buf.Settings["diffgutter"].(bool)
+	h.Buf.SetOptionNative("diffgutter", diffgutter)
+	if diffgutter {
 		h.Buf.UpdateDiff()
 		InfoBar.Message("Enabled diff gutter")
 	} else {
-		h.Buf.Settings["diffgutter"] = false
 		InfoBar.Message("Disabled diff gutter")
 	}
 	return true
@@ -1828,11 +1829,11 @@ func (h *BufPane) ToggleDiffGutter() bool {
 
 // ToggleRuler turns line numbers off and on
 func (h *BufPane) ToggleRuler() bool {
-	if !h.Buf.Settings["ruler"].(bool) {
-		h.Buf.Settings["ruler"] = true
+	ruler := !h.Buf.Settings["ruler"].(bool)
+	h.Buf.SetOptionNative("ruler", ruler)
+	if ruler {
 		InfoBar.Message("Enabled ruler")
 	} else {
-		h.Buf.Settings["ruler"] = false
 		InfoBar.Message("Disabled ruler")
 	}
 	return true
@@ -1885,7 +1886,7 @@ func (h *BufPane) CommandMode() bool {
 
 // ToggleOverwriteMode lets the user toggle the text overwrite mode
 func (h *BufPane) ToggleOverwriteMode() bool {
-	h.isOverwriteMode = !h.isOverwriteMode
+	h.Buf.OverwriteMode = !h.Buf.OverwriteMode
 	return true
 }
 
@@ -1938,7 +1939,7 @@ func (h *BufPane) Quit() bool {
 			}
 		}
 
-		if config.GlobalSettings["autosave"].(float64) > 0 {
+		if config.GlobalSettings["autosave"].(float64) > 0 && h.Buf.Path != "" {
 			// autosave on means we automatically save when quitting
 			h.SaveCB("Quit", func() {
 				h.ForceQuit()
