@@ -17,6 +17,7 @@
 > - [Add the ability lock settings.json and bindings.json for plugins #3618](https://github.com/zyedidia/micro/pull/3618)
 > - [Adding error screen for lua functions running in status line #3691](https://github.com/zyedidia/micro/pull/3691)
 > - [Adding lua function to use result of RunBackgroundShell #3692](https://github.com/zyedidia/micro/pull/3692)
+> - [Fix unable to perform proportional resize caused by chained parents after quiting a nested HSplit inside a VSplit #3708](https://github.com/zyedidia/micro/pull/3708)
 >
 > To see the diff between this and upstream master, click [here](https://github.com/zyedidia/micro/compare/master...Neko-Box-Coder:micro-dev:dev)
 
