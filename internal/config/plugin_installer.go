@@ -14,8 +14,8 @@ import (
 	"time"
 
 	"github.com/blang/semver"
-	lua "github.com/yuin/gopher-lua"
 	"github.com/micro-editor/json5"
+	lua "github.com/yuin/gopher-lua"
 	ulua "github.com/zyedidia/micro/v2/internal/lua"
 	"github.com/zyedidia/micro/v2/internal/util"
 )

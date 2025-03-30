@@ -1039,7 +1039,6 @@ func (h *BufPane) saveBufToFile(filename string, action string, callback func())
 				if err != nil {
 					InfoBar.Error(err)
 				} else {
-					h.Buf.SetName(filename)
 					InfoBar.Message("Saved " + filename)
 					if callback != nil {
 						callback()
@@ -1064,7 +1063,6 @@ func (h *BufPane) saveBufToFile(filename string, action string, callback func())
 			InfoBar.Error(err)
 		}
 	} else {
-		h.Buf.SetName(filename)
 		InfoBar.Message("Saved " + filename)
 		if callback != nil {
 			callback()
