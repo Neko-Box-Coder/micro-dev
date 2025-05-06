@@ -476,14 +476,14 @@ func (n *Node) Unsplit() bool {
 		return n.parent.Unsplit()
 	}
 
-	n.parent.simplify()
+	n.parent.flatten()
 	return true
 }
 
-// Simplify removes unnecessary chained parents
-func (n *Node) simplify() {
+// flattens the tree by removing unnecessary intermediate parents that have only one child
+// and handles the side effect of it
+func (n *Node) flatten() {
 	if n.parent == nil || len(n.children) != 1 {
-		n.markResize()
 		return
 	}
 
@@ -494,12 +494,37 @@ func (n *Node) simplify() {
 		}
 	}
 
-	parent := n.parent
-	kind := n.Kind
-	parent.children[ind] = n.children[0]
-	parent.children[ind].parent = parent
-	parent.children[ind].Kind = kind
-	parent.simplify()
+	// Replace current node with its child node to remove chained parent
+	successor := n.children[0]
+	n.parent.children[ind] = successor
+	successor.parent = n.parent
+
+	// Maintain the tree in a consistent state: any child node's kind (horiz vs vert)
+	// should be the opposite of its parent's kind.
+	if successor.IsLeaf() {
+		successor.Kind = n.Kind
+	} else {
+		// If the successor node has children, that means it is a chained parent as well.
+		// Therefore it can be replaced by its own children.
+		origsize := len(n.parent.children)
+
+		// Let's say we have 5 children and want to replace [2] with its children [a] [b] [c]
+		// [0] [1] [2] [3] [4] --> [0] [1] [a] [b] [c] [3] [4]
+		// insertcount will be `3 - 1 = 2` in this case
+		insertcount := len(successor.children) - 1
+
+		n.parent.children = append(n.parent.children, make([]*Node, insertcount)...)
+		copy(n.parent.children[ind+insertcount+1:], n.parent.children[ind+1:origsize])
+		copy(n.parent.children[ind:], successor.children)
+
+		for i := 0; i < len(successor.children); i++ {
+			n.parent.children[ind+i].parent = n.parent
+		}
+	}
+
+	// Update propW and propH since the parent of the children has been updated,
+	// so the children have new siblings
+	n.parent.markSizes()
 }
 
 // String returns the string form of the node and all children (used for debugging)
