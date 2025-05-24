@@ -69,8 +69,6 @@ function updateCommentType(buf)
         -- NOTE: This won't get triggered if a filetype is change via `setlocal filetype`
         -- since it is not registered with `RegisterGlobalOption()``
         if buf.Settings["commenttype"] ~= nil then
-            micro.InfoBar():Error("\"commenttype\" option has been renamed to \"comment.type\"",
-                                  ", please update your configuration")
             buf:DoSetOptionNative("comment.type", buf.Settings["commenttype"])
         else
             if (ft[buf.Settings["filetype"]] ~= nil) then
