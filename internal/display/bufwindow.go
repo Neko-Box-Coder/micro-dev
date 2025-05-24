@@ -61,6 +61,12 @@ func (w *BufWindow) SetBuffer(b *buffer.Buffer) {
 				c.LastWrappedVisualX = c.GetVisualX(true)
 			}
 		}
+
+		if option == "diffgutter" || option == "ruler" || option == "scrollbar" ||
+			option == "statusline" {
+			w.updateDisplayInfo()
+			w.Relocate()
+		}
 	}
 	b.GetVisualX = func(loc buffer.Loc) int {
 		return w.VLocFromLoc(loc).VisualX
@@ -248,8 +254,8 @@ func (w *BufWindow) Relocate() bool {
 			w.StartCol = cx
 			ret = true
 		}
-		if cx+w.gutterOffset+rw > w.StartCol+w.Width {
-			w.StartCol = cx - w.Width + w.gutterOffset + rw
+		if cx+rw > w.StartCol+w.bufWidth {
+			w.StartCol = cx - w.bufWidth + rw
 			ret = true
 		}
 	}
@@ -620,16 +626,21 @@ func (w *BufWindow) displayBuffer() {
 
 		wrap := func() {
 			vloc.X = 0
-			if w.hasMessage {
-				w.drawGutter(&vloc, &bloc)
-			}
-			if b.Settings["diffgutter"].(bool) {
-				w.drawDiffGutter(lineNumStyle, true, &vloc, &bloc)
-			}
 
-			// This will draw an empty line number because the current line is wrapped
-			if b.Settings["ruler"].(bool) {
-				w.drawLineNum(lineNumStyle, true, &vloc, &bloc)
+			if vloc.Y >= 0 {
+				if w.hasMessage {
+					w.drawGutter(&vloc, &bloc)
+				}
+				if b.Settings["diffgutter"].(bool) {
+					w.drawDiffGutter(lineNumStyle, true, &vloc, &bloc)
+				}
+
+				// This will draw an empty line number because the current line is wrapped
+				if b.Settings["ruler"].(bool) {
+					w.drawLineNum(lineNumStyle, true, &vloc, &bloc)
+				}
+			} else {
+				vloc.X = w.gutterOffset
 			}
 		}
 
