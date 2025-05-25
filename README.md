@@ -9,7 +9,6 @@
 > - [Add wrapindent option to allow wrapping and hanging indents #3107](https://github.com/zyedidia/micro/pull/3107)
 > - [add next/prev split/tab support for terminal pane #3165](https://github.com/zyedidia/micro/pull/3165)
 > - [Escape braces that are in string or comments when finding matching brace #3372](https://github.com/zyedidia/micro/pull/3372)
-> - [Exposing replacement functions for deprecated IOUtil functions #3393](https://github.com/zyedidia/micro/pull/3393)
 > - [Adding timeout when fetching plugin & more clear plugin error message #3389](https://github.com/zyedidia/micro/pull/3389)
 > - [Adding Jumping to opening and closing brace logic and actions #3384](https://github.com/zyedidia/micro/pull/3384)
 > - [Adding auto complete support for multi cursors #3442](https://github.com/zyedidia/micro/pull/3442)
@@ -17,7 +16,7 @@
 > - [Add the ability lock settings.json and bindings.json for plugins #3618](https://github.com/zyedidia/micro/pull/3618)
 > - [Adding error screen for lua functions running in status line #3691](https://github.com/zyedidia/micro/pull/3691)
 > - [Adding lua function to use result of RunBackgroundShell #3692](https://github.com/zyedidia/micro/pull/3692)
-> - [Fix unable to perform proportional resize caused by chained parents after quiting a nested HSplit inside a VSplit #3708](https://github.com/zyedidia/micro/pull/3708)
+> - [Adding indenttabchar, indentspacechar and spacechar options #3760](https://github.com/zyedidia/micro/pull/3760)
 >
 > To see the diff between this and upstream master, click [here](https://github.com/zyedidia/micro/compare/master...Neko-Box-Coder:micro-dev:dev)
 
