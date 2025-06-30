@@ -96,7 +96,7 @@ Or in your `settings.json`:
 }
 ```
 
-`commenttype` was the previous option name that was replaced by `comment.type`.
-
-While `commenttype` is still supported, we recommend switching to `comment.type` instead as
-`commenttype` can get deprecated in the future.
+`commenttype` (without the dot) is the legacy option that is
+superseded by `comment.type`. `commenttype` is still supported
+but deprecated.
+**Use `comment.type` instead.**

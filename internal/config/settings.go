@@ -36,6 +36,7 @@ var optionValidators = map[string]optionValidator{
 	"scrollmargin":    validateNonNegativeValue,
 	"scrollspeed":     validateNonNegativeValue,
 	"tabsize":         validatePositiveValue,
+	"truecolor":       validateChoice,
 }
 
 // a list of settings with pre-defined choices
@@ -46,6 +47,7 @@ var OptionChoices = map[string][]string{
 	"matchbracestyle": {"underline", "highlight"},
 	"multiopen":       {"tab", "hsplit", "vsplit"},
 	"reload":          {"prompt", "auto", "disabled"},
+	"truecolor":       {"auto", "on", "off"},
 }
 
 // a list of settings that can be globally and locally modified and their
@@ -100,6 +102,7 @@ var defaultCommonSettings = map[string]interface{}{
 	"tabmovement":     false,
 	"tabsize":         float64(4),
 	"tabstospaces":    false,
+	"truecolor":       "auto",
 	"useprimary":      true,
 	"wordwrap":        false,
 	"wrapindent":      float64(-1),
@@ -272,6 +275,12 @@ func verifySetting(option string, value interface{}, def interface{}) error {
 	}
 	if !assignable {
 		return fmt.Errorf("Error: setting '%s' has incorrect type (%s), using default value: %v (%s)", option, valType, def, defType)
+	}
+
+	if option == "colorscheme" {
+		// Plugins are not initialized yet, so do not verify if the colorscheme
+		// exists yet, since the colorscheme may be added by a plugin later.
+		return nil
 	}
 
 	if err := OptionIsValid(option, value); err != nil {
