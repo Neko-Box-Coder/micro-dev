@@ -241,12 +241,7 @@ Here are the available options:
 
     default value: `false`
 
-* `lockbindings`: Disable plugins to modify the `bindings.json` in your config
-   directory.
-
-    default value: `false`
-
-* `locksettings`: Disable plugins to modify the `settings.json` in your config
+* `lockbindings`: disable plugins to modify the `bindings.json` in your config
    directory.
 
     default value: `false`
