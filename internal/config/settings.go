@@ -70,9 +70,7 @@ var defaultCommonSettings = map[string]interface{}{
 	"hltrailingws":    false,
 	"ignorecase":      true,
 	"incsearch":       true,
-	"indenttabchar":   " ",
-	"indentspacechar": " ",
-	"spacechar":       " ",
+	"indentchar":      " ", // Deprecated
 	"keepautoindent":  false,
 	"matchbrace":      true,
 	"matchbraceleft":  true,
@@ -90,6 +88,7 @@ var defaultCommonSettings = map[string]interface{}{
 	"scrollbar":       false,
 	"scrollmargin":    float64(3),
 	"scrollspeed":     float64(2),
+	"showchars":       "",
 	"smartpaste":      true,
 	"softwrap":        false,
 	"splitbottom":     true,
@@ -213,12 +212,6 @@ func validateParsedSettings() error {
 				}
 			}
 			continue
-		}
-
-		if k == "indentchar" {
-			// migrate to "indenttabchar" from "indentchar"
-			parsedSettings["indenttabchar"] = v
-			err = errors.New("indentchar has been deprecated, use indenttabchar instead")
 		}
 
 		if _, ok := defaults[k]; ok {

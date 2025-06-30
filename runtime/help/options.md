@@ -203,24 +203,21 @@ Here are the available options:
 
     default value: `true`
 
-* `indenttabchar`: sets the indentation character for tabs. This will not be
-   inserted into files; it is only a visual indicator that whitespace is present.
-   If set to a printing character, it functions as a subset of the
-   "show invisibles" setting available in many other text editors. The color of
-   this character is determined by the `indent-char` field in the current theme
-   rather than the default text color.
+* `showchars`: sets what characters to be shown for various inivisible characters
+   in the file. This is similar to `listchars` in vim and the characters shown
+   will not be inserted into files. This option supersedes the `indentchar`
+   option.
+   The color of the shown character is determined by the `indent-char`
+   field in the current theme rather than the default text color.
+   This field is specified in the form of `option1=value1,option2=value2,...`.
+   Here are the list of options:
+   - `ispace`: indent space characters (space before first visible character)
+   - `itab`: indent tab characters (tab before first visible character)
+   - `space`: space characters (space after first visible character)
+   - `tab`: tab characters (tab after first visible character)
+   An example of this option could be `tab=>,space=.,itab=|>,ispace=|`
 
-    default value: ` ` (space)
-
-* `indentspacechar`: same as `indenttabchar` except for spaces that are at
-   locations that are divisible by `tabsize`.
-
-    default value: ` ` (space)
-
-* `spacechar`: same as `indenttabchar` but for all spaces. `indentspacechar`
-   takes precedence over this option.
-
-    default value: ` ` (space)
+    default value: ``
 
 * `infobar`: enables the line at the bottom of the editor where messages are
    printed. This option is `global only`.
@@ -599,6 +596,7 @@ so that you can see what the formatting should look like.
     "scrollbarchar": "|",
     "scrollmargin": 3,
     "scrollspeed": 2,
+    "showchars": " ",
     "smartpaste": true,
     "softwrap": false,
     "splitbottom": true,
