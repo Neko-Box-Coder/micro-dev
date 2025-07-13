@@ -374,6 +374,7 @@ func (b *Buffer) safeWrite(path string, withSudo bool, newFile bool) (int, error
 	size, err := file.Write(b)
 	if err != nil {
 		err = util.OverwriteError{err, backupName}
+		file.Close()
 		return size, err
 	}
 	b.forceKeepBackup = false

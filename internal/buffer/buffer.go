@@ -255,9 +255,10 @@ func NewBufferFromFileAtLoc(path string, btype BufType, cursorLoc Loc) (*Buffer,
 	f.Close()
 
 	file, err := os.Open(filename)
-	if err == nil {
-		defer file.Close()
+	if err != nil {
+		return nil, err
 	}
+	defer file.Close()
 
 	var buf *Buffer
 	if errors.Is(err, fs.ErrNotExist) {
@@ -538,6 +539,7 @@ func (b *Buffer) ReOpen() error {
 	if err != nil {
 		return err
 	}
+	defer file.Close()
 
 	enc, err := htmlindex.Get(b.Settings["encoding"].(string))
 	if err != nil {
