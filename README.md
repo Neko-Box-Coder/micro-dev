@@ -12,7 +12,6 @@
 > - [Adding timeout when fetching plugin & more clear plugin error message #3389](https://github.com/zyedidia/micro/pull/3389)
 > - [Adding Jumping to opening and closing brace logic and actions #3384](https://github.com/zyedidia/micro/pull/3384)
 > - [Adding auto complete support for multi cursors #3442](https://github.com/zyedidia/micro/pull/3442)
-> - [Fixing comment plugin not using user settings when overriding default setting #3424](https://github.com/zyedidia/micro/pull/3424)
 > - [Add the ability lock settings.json and bindings.json for plugins #3618](https://github.com/zyedidia/micro/pull/3618)
 > - [Adding error screen for lua functions running in status line #3691](https://github.com/zyedidia/micro/pull/3691)
 > - [Adding lua function to use result of RunBackgroundShell #3692](https://github.com/zyedidia/micro/pull/3692)
@@ -21,7 +20,7 @@
 > To see the diff between this and upstream master, click [here](https://github.com/zyedidia/micro/compare/master...Neko-Box-Coder:micro-dev:dev)
 
 ### Builds
-Just like the offical release, you can find the nightly build of this branch under [Nightly Release](https://github.com/Neko-Box-Coder/micro-dev/releases/tag/nightly)
+Just like the official release, you can find the nightly build of this branch under [Nightly Release](https://github.com/Neko-Box-Coder/micro-dev/releases/tag/nightly)
 
 > ### TODO
 > - Create CI/CD pipeline to build and release for new changes

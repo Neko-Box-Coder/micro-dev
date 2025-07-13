@@ -706,7 +706,7 @@ func SetGlobalOption(option, value string) error {
 		return config.ErrInvalidOption
 	}
 
-	nativeValue, err := config.GetNativeValue(option, config.GlobalSettings[option], value)
+	nativeValue, err := config.GetNativeValue(option, value)
 	if err != nil {
 		return err
 	}
