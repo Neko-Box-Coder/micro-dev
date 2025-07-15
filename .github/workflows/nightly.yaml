@@ -1,6 +1,7 @@
 name: Nightly builds
-on:
-  workflow_dispatch: # Allows manual trigger
+on: [push, workflow_dispatch]
+# on:
+  # workflow_dispatch: # Allows manual trigger
   # schedule:
   #   - cron: '0 0 * * *'
 jobs:
