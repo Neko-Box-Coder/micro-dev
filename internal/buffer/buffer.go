@@ -255,10 +255,9 @@ func NewBufferFromFileAtLoc(path string, btype BufType, cursorLoc Loc) (*Buffer,
 	f.Close()
 
 	file, err := os.Open(filename)
-	if err != nil {
-		return nil, err
+	if err == nil {
+		defer file.Close()
 	}
-	defer file.Close()
 
 	var buf *Buffer
 	if errors.Is(err, fs.ErrNotExist) {
