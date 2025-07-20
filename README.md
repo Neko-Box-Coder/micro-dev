@@ -16,6 +16,9 @@
 > - [Adding error screen for lua functions running in status line #3691](https://github.com/zyedidia/micro/pull/3691)
 > - [Adding lua function to use result of RunBackgroundShell #3692](https://github.com/zyedidia/micro/pull/3692)
 > - [Adding indenttabchar, indentspacechar and spacechar options #3760](https://github.com/zyedidia/micro/pull/3760)
+> - [Adding missing file closes #3807](https://github.com/zyedidia/micro/pull/3807)
+> - [Pasting multi cursor clipboard with newlines for non matching cursors #3809](https://github.com/zyedidia/micro/pull/3809)
+> - [Adding the ability to differentiate builtin plugins when listing #3810](https://github.com/zyedidia/micro/pull/3810)
 >
 > To see the diff between this and upstream master, click [here](https://github.com/zyedidia/micro/compare/master...Neko-Box-Coder:micro-dev:dev)
 
