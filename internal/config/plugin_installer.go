@@ -43,6 +43,7 @@ type PluginPackage struct {
 	Author      string
 	Tags        []string
 	Versions    PluginVersions
+	Default     bool
 }
 
 // PluginPackages is a list of PluginPackage instances.
@@ -76,6 +77,9 @@ func (pp *PluginPackage) String() string {
 	buf := new(bytes.Buffer)
 	buf.WriteString("Plugin: ")
 	buf.WriteString(pp.Name)
+	if pp.Default {
+		buf.WriteString(" (built-in)")
+	}
 	buf.WriteRune('\n')
 	if pp.Author != "" {
 		buf.WriteString("Author: ")
@@ -341,7 +345,7 @@ func isUnknownCoreVersion() bool {
 	return err != nil
 }
 
-func newStaticPluginVersion(name, version string) *PluginVersion {
+func newStaticPluginVersion(name, version string, builtin bool) *PluginVersion {
 	vers, err := semver.ParseTolerant(version)
 
 	if err != nil {
@@ -350,7 +354,8 @@ func newStaticPluginVersion(name, version string) *PluginVersion {
 		}
 	}
 	pl := &PluginPackage{
-		Name: name,
+		Name:    name,
+		Default: builtin,
 	}
 	pv := &PluginVersion{
 		pack:    pl,
@@ -365,7 +370,7 @@ func newStaticPluginVersion(name, version string) *PluginVersion {
 func GetInstalledVersions(withCore bool) PluginVersions {
 	result := PluginVersions{}
 	if withCore {
-		result = append(result, newStaticPluginVersion(CorePluginName, util.Version))
+		result = append(result, newStaticPluginVersion(CorePluginName, util.Version, true))
 	}
 
 	for _, p := range Plugins {
@@ -373,7 +378,7 @@ func GetInstalledVersions(withCore bool) PluginVersions {
 			continue
 		}
 		version := GetInstalledPluginVersion(p.Name)
-		if pv := newStaticPluginVersion(p.Name, version); pv != nil {
+		if pv := newStaticPluginVersion(p.Name, version, p.Default); pv != nil {
 			result = append(result, pv)
 		}
 	}
@@ -623,7 +628,7 @@ func UpdatePlugins(out io.Writer, plugins []string) {
 
 	fmt.Fprintln(out, "Checking for plugin updates")
 	microVersion := PluginVersions{
-		newStaticPluginVersion(CorePluginName, util.Version),
+		newStaticPluginVersion(CorePluginName, util.Version, true),
 	}
 
 	var updates = make(PluginDependencies, 0)
@@ -699,7 +704,13 @@ func PluginCommand(out io.Writer, cmd string, args []string) {
 		plugins := GetInstalledVersions(false)
 		fmt.Fprintln(out, "The following plugins are currently installed:")
 		for _, p := range plugins {
-			fmt.Fprintf(out, "%s (%s)\n", p.Pack().Name, p.Version)
+			var pluginname string
+			if p.Pack().Default {
+				pluginname = p.Pack().Name + " (built-in)"
+			} else {
+				pluginname = p.Pack().Name
+			}
+			fmt.Fprintf(out, "%s (%s)\n", pluginname, p.Version)
 		}
 	case "search":
 		fmt.Fprintln(out, "Fetching plugins, please wait...")
