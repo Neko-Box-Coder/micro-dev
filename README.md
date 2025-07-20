@@ -19,6 +19,7 @@
 > - [Adding missing file closes #3807](https://github.com/zyedidia/micro/pull/3807)
 > - [Pasting multi cursor clipboard with newlines for non matching cursors #3809](https://github.com/zyedidia/micro/pull/3809)
 > - [Adding the ability to differentiate builtin plugins when listing #3810](https://github.com/zyedidia/micro/pull/3810)
+> - [Added support for multi-cursor comments to the comment plugin #3543 (Removed the version part)](https://github.com/zyedidia/micro/pull/3543)
 >
 > To see the diff between this and upstream master, click [here](https://github.com/zyedidia/micro/compare/master...Neko-Box-Coder:micro-dev:dev)
 
