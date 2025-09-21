@@ -10,12 +10,12 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
-	"sort"
 
 	luar "layeh.com/gopher-luar"
 
@@ -1157,17 +1157,17 @@ func (b *Buffer) GetSortedSyntaxGroupIndices(lineN int) []int {
 // This optionally accepts sorted Group indices returned from GetSortedSyntaxGroupIndices()
 // which can be reused on the same line.
 func (b *Buffer) GetGroupAtLoc(loc Loc, sortedIndices []int) (highlight.Group, bool) {
- 	if sortedIndices == nil {
+	if sortedIndices == nil {
 		sortedIndices = b.GetSortedSyntaxGroupIndices(loc.Y)
- 	}
+	}
 	i := sort.SearchInts(sortedIndices, loc.X)
 	if i == 0 || i == len(sortedIndices) {
 		return 0, false
 	}
-	if sortedIndices[i] == loc.X && b.Match(loc.Y)[sortedIndices[i]] != 0 {
+	if sortedIndices[i] == loc.X {
 		return b.Match(loc.Y)[sortedIndices[i]], true
 	}
-	return b.Match(loc.Y)[sortedIndices[i - 1]], true
+	return b.Match(loc.Y)[sortedIndices[i-1]], true
 }
 
 func (b *Buffer) isLocInStringOrComment(loc Loc, sortedIndices []int) bool {
@@ -1217,7 +1217,7 @@ func (b *Buffer) findOpeningBrace(braceType [2]rune, start Loc) (Loc, bool) {
 					sortedGroups = b.GetSortedSyntaxGroupIndices(y)
 					sortedGroupsPopulated = true
 				}
-			 	if !b.isLocInStringOrComment(Loc{x, y}, sortedGroups) {
+				if !b.isLocInStringOrComment(Loc{x, y}, sortedGroups) {
 					i++
 				}
 			} else if r == braceType[0]{
