@@ -1178,6 +1178,33 @@ func (b *Buffer) isLocInStringOrComment(loc Loc, sortedIndices []int) bool {
 	return false
 }
 
+func (b *Buffer) resolveBraceStartLoc(start Loc) Loc {
+	var onbrace bool = false
+	// TODO: maybe can be more efficient with utf8 package
+	curLine := []rune(string(b.LineBytes(start.Y)))
+	// See if we are on any brace
+	if start.X >= 0 && start.X < len(curLine) {
+		startChar := curLine[start.X]
+		for _, bp := range BracePairs {
+			if startChar == bp[0] || startChar == bp[1] {
+				return start
+			}
+		}
+	}
+
+	if !onbrace && b.Settings["matchbraceleft"].(bool) {
+		if start.X-1 >= 0 && start.X-1 < len(curLine) {
+			startChar := curLine[start.X-1]
+			for _, bp := range BracePairs {
+				if startChar == bp[0] || startChar == bp[1] {
+					return Loc{start.X - 1, start.Y}
+				}
+			}
+		}
+	}
+	return start
+}
+
 func (b *Buffer) findOpeningBrace(braceType [2]rune, start Loc) (Loc, bool) {
 	// Bound guard
 	start = clamp(start, b.LineArray)
@@ -1220,7 +1247,7 @@ func (b *Buffer) findOpeningBrace(braceType [2]rune, start Loc) (Loc, bool) {
 				if !b.isLocInStringOrComment(Loc{x, y}, sortedGroups) {
 					i++
 				}
-			} else if r == braceType[0]{
+			} else if r == braceType[0] {
 				if !sortedGroupsPopulated {
 					sortedGroups = b.GetSortedSyntaxGroupIndices(y)
 					sortedGroupsPopulated = true
@@ -1242,6 +1269,7 @@ func (b *Buffer) findOpeningBrace(braceType [2]rune, start Loc) (Loc, bool) {
 func (b *Buffer) FindOpeningBrace(start Loc) (Loc, bool) {
 	currentDist := -1
 	currentMb := Loc{-1, -1}
+	start = b.resolveBraceStartLoc(start)
 	for _, bp := range BracePairs {
 		mb, found := b.findOpeningBrace(bp, start)
 		if found {
@@ -1321,6 +1349,7 @@ func (b *Buffer) findClosingBrace(braceType [2]rune, start Loc) (Loc, bool) {
 func (b *Buffer) FindClosingBrace(start Loc) (Loc, bool) {
 	currentDist := -1
 	currentMb := Loc{-1, -1}
+	start = b.resolveBraceStartLoc(start)
 	for _, bp := range BracePairs {
 		mb, found := b.findClosingBrace(bp, start)
 		if found {
@@ -1357,36 +1386,21 @@ func (b *Buffer) findMatchingBrace(braceType [2]rune, start Loc, char rune) (Loc
 // for given starting location but it was found for the location one character left
 // of it. The third returned value is true if the matching brace was found at all.
 func (b *Buffer) FindMatchingBrace(start Loc) (Loc, bool, bool) {
-	// TODO: maybe can be more efficient with utf8 package
+	newstart := b.resolveBraceStartLoc(start)
+	var left bool = false
+	if start != newstart {
+		left = true
+		start = newstart
+	}
 	curLine := []rune(string(b.LineBytes(start.Y)))
 
-	// first try to find matching brace for the given location (it has higher priority)
 	if start.X >= 0 && start.X < len(curLine) {
 		startChar := curLine[start.X]
-
 		for _, bp := range BracePairs {
 			if startChar == bp[0] || startChar == bp[1] {
 				mb, found := b.findMatchingBrace(bp, start, startChar)
 				if found {
-					return mb, false, true
-				}
-			}
-		}
-	}
-
-	if b.Settings["matchbraceleft"].(bool) {
-		// failed to find matching brace for the given location, so try to find matching
-		// brace for the location one character left of it
-		if start.X-1 >= 0 && start.X-1 < len(curLine) {
-			leftChar := curLine[start.X-1]
-			left := Loc{start.X - 1, start.Y}
-
-			for _, bp := range BracePairs {
-				if leftChar == bp[0] || leftChar == bp[1] {
-					mb, found := b.findMatchingBrace(bp, left, leftChar)
-					if found {
-						return mb, true, true
-					}
+					return mb, left, true
 				}
 			}
 		}
