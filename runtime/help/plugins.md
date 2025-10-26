@@ -174,16 +174,12 @@ The packages and their contents are listed below (in Go type signatures):
        values afterwards
     - `NoComplete`: no autocompletion suggestions
 
-    - `RegisterKeybindingPlug(k, v string) (bool, error)`: registers a default
-       keybinding `k` with action `v` for the plugin without writing to
-       `bindings.json.` This operation can be rejected by `lockbindings` to
-       prevent unexpected actions by the user.
-
-    - **Drepecated** `TryBindKey(k, v string, overwrite bool) (bool, error)`:
-       bind the key `k` to the string `v` in the `bindings.json` file.
-       If `overwrite` is true, this will overwrite any existing binding to key
-       `k`. Returns true if the binding was made, and a possible error
-       (for example writing to `bindings.json` can cause an error).
+    - `TryBindKey(k, v string, overwrite bool) (bool, error)`:
+       bind the key `k` to the string `v`. If `overwrite` is true, this will
+       overwrite any existing binding to key `k`.
+       Returns true if the binding was made, and a possible error.
+       This operation can be rejected by `lockbindings` to prevent undesired
+       actions by the user.
 
     - `Reload()`: reload configuration files.
 
@@ -228,10 +224,10 @@ The packages and their contents are listed below (in Go type signatures):
     - `GetGlobalOption(name string) any`: returns the value of a
        given plugin in the `GlobalSettings` map.
 
-    - **Deprecated** `SetGlobalOption(option, value string) error`: sets an
-       option to a given value. Same as using the `> set` command. This will try
-       to convert the value into the proper type for the option. Can return an
-       error if the option name is not valid, or the value can not be converted.
+    - `SetGlobalOption(option, value string) error`: sets an option to a
+       given value. This will try to convert the value into the proper
+       type for the option. Can return an error if the option name is not
+       valid, or the value can not be converted.
 
     - **Deprecated** `SetGlobalOptionNative(option string, value interface{}) error`:
        sets an option to a given value, where the type of value is the actual

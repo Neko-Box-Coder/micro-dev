@@ -227,8 +227,9 @@ Here are the available options:
 
     default value: `false`
 
-* `lockbindings`: disable plugins to modify the `bindings.json` in your config
-   directory.
+* `lockbindings`: prevent plugins and lua scripts from binding any keys.
+   Any custom actions must be binded manually either via commands like `bind`
+   or by modifying the `bindings.json` file.
 
     default value: `false`
 

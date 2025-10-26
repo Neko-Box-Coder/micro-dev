@@ -261,18 +261,13 @@ func eventsEqual(e1 Event, e2 Event) bool {
 	return e1 == e2
 }
 
-// RegisterKeybindingPlug registers a default keybinding for the plugin without writing to bindings.json.
+// TryBindKeyPlug tries to bind key for the plugin without writing to bindings.json.
 // This operation can be rejected by lockbindings to prevent unexpected actions by the user.
-func RegisterKeybindingPlug(k, v string) (bool, error) {
+func TryBindKeyPlug(k, v string, overwrite bool) (bool, error) {
 	if l, ok := config.GlobalSettings["lockbindings"]; ok && l.(bool) {
 		return false, errors.New("bindings is locked by the user")
 	}
-	return TryBindKey(k, v, false, false)
-}
-
-// **Deprecated**
-func TryBindKeyPlug(k, v string, overwrite bool) (bool, error) {
-	return RegisterKeybindingPlug(k, v)
+	return TryBindKey(k, v, overwrite, false)
 }
 
 // TryBindKey tries to bind a key by writing to config.ConfigDir/bindings.json
