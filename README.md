@@ -16,6 +16,7 @@
 > - [Adding lua function to use result of RunBackgroundShell #3692](https://github.com/zyedidia/micro/pull/3692)
 > - [Pasting multi cursor clipboard with newlines for non matching cursors #3809](https://github.com/zyedidia/micro/pull/3809)
 > - [Added support for multi-cursor comments to the comment plugin #3543 (Removed the version part)](https://github.com/zyedidia/micro/pull/3543)
+> - [Allow multi-cursor to work properly for autoclose plugin #3886](https://github.com/zyedidia/micro/pull/3886)
 >
 > To see the diff between this and upstream master, click [here](https://github.com/zyedidia/micro/compare/master...Neko-Box-Coder:micro-dev:dev)
 
