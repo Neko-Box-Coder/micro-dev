@@ -25,17 +25,17 @@ func init() {
 // JobFunction is a representation of a job (this data structure is what is loaded
 // into the jobs channel)
 type JobFunction struct {
-	Function func(string, []interface{})
+	Function func(string, []any)
 	Output   string
-	Args     []interface{}
+	Args     []any
 }
 
 // A CallbackFile is the data structure that makes it possible to catch stderr and stdout write events
 type CallbackFile struct {
 	io.Writer
 
-	callback func(string, []interface{})
-	args     []interface{}
+	callback func(string, []any)
+	args     []any
 }
 
 // Job stores the executing command for the job, and the stdin pipe
@@ -64,7 +64,7 @@ func JobStart(cmd string, onStdout, onStderr, onExit func(string, []interface{})
 
 // JobSpawn starts a process with args in the background with the given callbacks
 // It returns an *exec.Cmd as the job id
-func JobSpawn(cmdName string, cmdArgs []string, onStdout, onStderr, onExit func(string, []interface{}), userargs ...interface{}) *Job {
+func JobSpawn(cmdName string, cmdArgs []string, onStdout, onStderr, onExit func(string, []any), userargs ...any) *Job {
 	// Set up everything correctly if the functions have been provided
 	proc := exec.Command(cmdName, cmdArgs...)
 	var outbuf bytes.Buffer

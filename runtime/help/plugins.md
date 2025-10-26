@@ -126,7 +126,7 @@ micro.Log("Hello")
 The packages and their contents are listed below (in Go type signatures):
 
 * `micro`
-    - `TermMessage(msg interface{}...)`: temporarily close micro and print a
+    - `TermMessage(msg any...)`: temporarily close micro and print a
        message
 
     - `TermError(filename string, lineNum int, err string)`: temporarily close
@@ -134,7 +134,7 @@ The packages and their contents are listed below (in Go type signatures):
 
     - `InfoBar() *InfoPane`: return the infobar BufPane object.
 
-    - `Log(msg interface{}...)`: write a message to `log.txt` (requires
+    - `Log(msg any...)`: write a message to `log.txt` (requires
        `-debug` flag, or binary built with `build-dbg`).
 
     - `SetStatusInfoFn(fn string)`: register the given lua function as
@@ -157,7 +157,6 @@ The packages and their contents are listed below (in Go type signatures):
     [InfoPane](https://pkg.go.dev/github.com/zyedidia/micro/v2/internal/action#InfoPane)
     [Tab](https://pkg.go.dev/github.com/zyedidia/micro/v2/internal/action#Tab)
     [TabList](https://pkg.go.dev/github.com/zyedidia/micro/v2/internal/action#TabList)
-    [interface{} / any](https://go.dev/tour/methods/14)
 
 * `micro/config`
     - `MakeCommand(name string, action func(bp *BufPane, args[]string),
@@ -215,18 +214,18 @@ The packages and their contents are listed below (in Go type signatures):
     - `RTHelp`: runtime files for help documents.
     - `RTPlugin`: runtime files for plugin source code.
 
-    - `RegisterCommonOption(pl string, name string, defaultvalue interface{})`:
+    - `RegisterCommonOption(pl string, name string, defaultvalue any)`:
        registers a new option for the given plugin. The name of the
        option will be `pl.name`, and will have the given default value. Since
        this registers a common option, the option will be modifiable on a
        per-buffer basis, while also having a global value (in the
        GlobalSettings map).
 
-    - `RegisterGlobalOption(pl string, name string, defaultvalue interface{})`:
+    - `RegisterGlobalOption(pl string, name string, defaultvalue any)`:
        same as `RegisterCommonOption`, but the option cannot be modified
        locally to each buffer.
 
-    - `GetGlobalOption(name string) interface{}`: returns the value of a
+    - `GetGlobalOption(name string) any`: returns the value of a
        given plugin in the `GlobalSettings` map.
 
     - **Deprecated** `SetGlobalOption(option, value string) error`: sets an
@@ -245,7 +244,6 @@ The packages and their contents are listed below (in Go type signatures):
     [Buffer](https://pkg.go.dev/github.com/zyedidia/micro/v2/internal/buffer#Buffer)
     [buffer.Completer](https://pkg.go.dev/github.com/zyedidia/micro/v2/internal/buffer#Completer)
     [Error](https://pkg.go.dev/builtin#error)
-    [interface{} / any](https://go.dev/tour/methods/14)
     [filepath.Match](https://pkg.go.dev/path/filepath#Match)
 
 * `micro/shell`
@@ -287,7 +285,7 @@ The packages and their contents are listed below (in Go type signatures):
        stdout from the command to the returned string.
 
     - `JobStart(cmd string, onStdout, onStderr,
-                onExit func(string, []interface{}), userargs ...interface{})
+                onExit func(string, []any), userargs ...any)
                 *exec.Cmd`:
        Starts a background job by running the shell on the given command
        (using `sh -c` or `cmd /v:on /c`). Three callbacks can be provided which
@@ -296,7 +294,7 @@ The packages and their contents are listed below (in Go type signatures):
        as the first argument of the callback. Returns the started command.
 
     - `JobSpawn(cmd string, cmdArgs []string, onStdout, onStderr,
-                onExit func(string, []interface{}), userargs ...interface{})
+                onExit func(string, []any), userargs ...any)
                 *exec.Cmd`:
        same as `JobStart`, except doesn't run the command through the shell
        and instead takes as inputs the list of arguments. Returns the started
@@ -306,8 +304,8 @@ The packages and their contents are listed below (in Go type signatures):
     - `JobSend(cmd *exec.Cmd, data string)`: sends some data to a job's stdin.
 
     - `RunTermEmulator(h *BufPane, input string, wait bool, getOutput bool,
-                       callback func(out string, userargs []interface{}),
-                       userargs []interface{}) error`:
+                       callback func(out string, userargs []any),
+                       userargs []any) error`:
        starts a terminal emulator from a given BufPane with the input command.
        If `wait` is true, it will wait for the user to exit by pressing enter
        once the executable has terminated, and if `getOutput` is true, it will
@@ -530,8 +528,8 @@ Micro also has a built in plugin manager, which you can invoke with the
 For the valid commands you can use, see the `commands` help topic.
 
 The manager fetches plugins from the channels (which is simply a list of plugin
-metadata) which it knows about. By default, micro only knows about the official
-channel which is located at github.com/micro-editor/plugin-channel but you can
+metadata) which it knows about. By default, micro only knows about the [official
+channel](https://github.com/micro-editor/plugin-channel) but you can
 add your own third-party channels using the `pluginchannels` option and you can
 directly link third-party plugins to allow installation through the plugin
 manager with the `pluginrepos` option.
@@ -558,9 +556,9 @@ This file will contain the metadata for your plugin. Here is an example:
 }]
 ```
 
-Then open a pull request at github.com/micro-editor/plugin-channel, adding a
-link to the raw `repo.json` that is in your plugin repository.
+Then open a pull request at the [official plugin channel](https://github.com/micro-editor/plugin-channel),
+adding a link to the raw `repo.json` that is in your plugin repository.
 
 To make updating the plugin work, the first line of your plugin's lua code
 should contain the version of the plugin. (Like this: `VERSION = "1.0.0"`)
-Please make sure to use [semver](http://semver.org/) for versioning.
+Please make sure to use [semver](https://semver.org/) for versioning.

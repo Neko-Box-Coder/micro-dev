@@ -4,7 +4,6 @@
 > This is just my personal development branch for [micro](https://github.com/zyedidia/micro) where many of my (and other) PRs are merged
 >
 > ### Merged Open PRs
-> - [Changing syntax behavior for single quote to allow binary and hex literal separator #3310](https://github.com/zyedidia/micro/pull/3310)
 > - [Fix indent selection #3102](https://github.com/zyedidia/micro/pull/3102)
 > - [Add wrapindent option to allow wrapping and hanging indents #3107](https://github.com/zyedidia/micro/pull/3107)
 > - [add next/prev split/tab support for terminal pane #3165](https://github.com/zyedidia/micro/pull/3165)
@@ -15,10 +14,7 @@
 > - [Add the ability lock settings.json and bindings.json for plugins #3618](https://github.com/zyedidia/micro/pull/3618)
 > - [Adding error screen for lua functions running in status line #3691](https://github.com/zyedidia/micro/pull/3691)
 > - [Adding lua function to use result of RunBackgroundShell #3692](https://github.com/zyedidia/micro/pull/3692)
-> - [Adding indenttabchar, indentspacechar and spacechar options #3760](https://github.com/zyedidia/micro/pull/3760)
-> - [Adding missing file closes #3807](https://github.com/zyedidia/micro/pull/3807)
 > - [Pasting multi cursor clipboard with newlines for non matching cursors #3809](https://github.com/zyedidia/micro/pull/3809)
-> - [Adding the ability to differentiate builtin plugins when listing #3810](https://github.com/zyedidia/micro/pull/3810)
 > - [Added support for multi-cursor comments to the comment plugin #3543 (Removed the version part)](https://github.com/zyedidia/micro/pull/3543)
 >
 > To see the diff between this and upstream master, click [here](https://github.com/zyedidia/micro/compare/master...Neko-Box-Coder:micro-dev:dev)
@@ -35,7 +31,7 @@ Just like the official release, you can find the nightly build of this branch un
 > Below is the original readme
 
 ![Test Workflow](https://github.com/zyedidia/micro/actions/workflows/test.yaml/badge.svg)
-[![Go Report Card](https://goreportcard.com/badge/github.com/zyedidia/micro)](https://goreportcard.com/report/github.com/zyedidia/micro)
+[![Go Report Card](https://goreportcard.com/badge/github.com/zyedidia/micro/v2)](https://goreportcard.com/report/github.com/zyedidia/micro/v2)
 [![Release](https://img.shields.io/github/release/zyedidia/micro.svg?label=Release)](https://github.com/zyedidia/micro/releases)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/zyedidia/micro/blob/master/LICENSE)
 [![Join the chat at https://gitter.im/zyedidia/micro](https://badges.gitter.im/zyedidia/micro.svg)](https://gitter.im/zyedidia/micro?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
@@ -176,7 +172,7 @@ for other operating systems. These packages are not guaranteed to be up-to-date.
     * `winget install zyedidia.micro`
 * OpenBSD: Available in the ports tree and also available as a binary package.
     * `pkg_add -v micro`.
-* NetBSD, macOS, Linux, Illumos, etc. with [pkgsrc](http://www.pkgsrc.org/)-current:
+* NetBSD, macOS, Linux, Illumos, etc. with [pkgsrc](https://www.pkgsrc.org/)-current:
     * `pkg_add micro`
 * macOS: Available in package managers.
     * `sudo port install micro` (with [MacPorts](https://www.macports.org))
@@ -230,7 +226,7 @@ Native macOS builds are done with `CGO_ENABLED=1` forced set to support adding t
 
 ### macOS terminal
 
-If you are using macOS, you should consider using [iTerm2](http://iterm2.com/) instead of the default terminal (Terminal.app). The iTerm2 terminal has much better mouse support as well as better handling of key events. For best keybinding behavior, choose `xterm defaults` under `Preferences->Profiles->Keys->Presets...`, and select `Esc+` for `Left Option Key` in the same menu. The newest versions also support true color.
+If you are using macOS, you should consider using [iTerm2](https://iterm2.com/) instead of the default terminal (Terminal.app). The iTerm2 terminal has much better mouse support as well as better handling of key events. For best keybinding behavior, choose `xterm defaults` under `Preferences->Profiles->Keys->Presets...`, and select `Esc+` for `Left Option Key` in the same menu. The newest versions also support true color.
 
 If you still insist on using the default Mac terminal, be sure to set `Use Option key as Meta key` under
 `Preferences->Profiles->Keyboard` to use <kbd>option</kbd> as <kbd>alt</kbd>.

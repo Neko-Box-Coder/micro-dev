@@ -1034,6 +1034,11 @@ func (h *BufPane) saveBufToFile(filename string, action string, callback func())
 	err := h.Buf.SaveAs(filename)
 	if err != nil {
 		if errors.Is(err, fs.ErrPermission) {
+			if runtime.GOOS == "windows" {
+				InfoBar.Error("Permission denied. Save with sudo not supported on Windows")
+				return true
+			}
+
 			saveWithSudo := func() {
 				err = h.Buf.SaveAsWithSudo(filename)
 				if err != nil {
@@ -2109,14 +2114,14 @@ func (h *BufPane) LastSplit() bool {
 	return true
 }
 
-var curmacro []interface{}
+var curmacro []any
 var recordingMacro bool
 
 // ToggleMacro toggles recording of a macro
 func (h *BufPane) ToggleMacro() bool {
 	recordingMacro = !recordingMacro
 	if recordingMacro {
-		curmacro = []interface{}{}
+		curmacro = []any{}
 		InfoBar.Message("Recording")
 	} else {
 		InfoBar.Message("Stopped recording")
