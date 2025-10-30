@@ -24,11 +24,13 @@ function preInsertNewlineAct(bp)
                 bp:CursorLeft()
                 bp:InsertNewline()
                 bp:InsertTab()
-                return true
+                return
             end
         end
     end
-    return false
+    
+    bp:InsertNewline()
+    return
 end
 
 function preBackspaceAct(bp)
@@ -36,6 +38,7 @@ function preBackspaceAct(bp)
         local curLine = bp.Buf:Line(bp.Cursor.Y)
         if charAt(curLine, bp.Cursor.X+1) == charAt(autoclosePairs[i], 2) and charAt(curLine, bp.Cursor.X) == charAt(autoclosePairs[i], 1) then
             bp:Delete()
+            return
         end
     end
 end
@@ -75,20 +78,22 @@ function preInsertNewline(bp)
     local inserted = false
     for i = 1,#bp.Buf:getCursors() do
         bp.Cursor = bp.Buf:GetCursor(i-1)
-        if preInsertNewlineAct(bp) then
-            inserted = true
-        end
+        preInsertNewlineAct(bp)
     end
     bp.Cursor = bp.Buf:GetCursor(activeCursorNum)
-    return not inserted
+
+    return false
 end
 
 function preBackspace(bp)
     local activeCursorNum = bp.Buf:GetActiveCursor().Num
+    local inserted = false
     for i = 1,#bp.Buf:getCursors() do
         bp.Cursor = bp.Buf:GetCursor(i-1)
         preBackspaceAct(bp)
+        bp:Backspace()
     end
     bp.Cursor = bp.Buf:GetCursor(activeCursorNum)
-    return true
+
+    return false
 end
