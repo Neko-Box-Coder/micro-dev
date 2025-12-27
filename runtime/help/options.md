@@ -468,16 +468,16 @@ Here are the available options:
    - `div`: the characters to be filled between each tab.
    - `inactive`: the opening and closing tab characters for the inactive tabs.
 
-    default value: `active=[]`
+    default value: `div=|`
 
 * `tabdist`: the distance between each tab.
 
-    default value: `2`
+    default value: `1`
 
 * `tabhighlight`: highlighting the current active tab by using the inverted tab bar color.
    Has no effect if `tabbar.active` is present in the current colorscheme.
 
-    default value: `false`
+    default value: `true`
 
 * `tabmovement`: navigate spaces at the beginning of lines as if they are tabs
    (e.g. move over 4 spaces at once). This option only does anything if
