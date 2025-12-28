@@ -2,11 +2,12 @@ package display
 
 import (
 	runewidth "github.com/mattn/go-runewidth"
-	"github.com/micro-editor/tcell/v2"
 	"github.com/zyedidia/micro/v2/internal/buffer"
 	"github.com/zyedidia/micro/v2/internal/config"
 	"github.com/zyedidia/micro/v2/internal/screen"
 	"github.com/zyedidia/micro/v2/internal/util"
+	"strings"
+	"unicode/utf8"
 )
 
 type TabWindow struct {
@@ -38,7 +39,7 @@ func (w *TabWindow) LocFromVisual(vloc buffer.Loc) int {
 			return i
 		}
 		x += s
-		x += 3
+		x += 1 + int(config.GetGlobalOption("tabdist").(float64))
 		if x >= w.Width {
 			break
 		}
@@ -97,29 +98,42 @@ func (w *TabWindow) Display() {
 
 	globalTabReverse := config.GetGlobalOption("tabreverse").(bool)
 	globalTabHighlight := config.GetGlobalOption("tabhighlight").(bool)
+	tabBarStyle := config.DefStyle
 
-	// xor of reverse and tab highlight to get tab character (as in filename and surrounding characters) reverse state
-	tabCharHighlight := (globalTabReverse || globalTabHighlight) && !(globalTabReverse && globalTabHighlight)
-
-	reverseStyles := func(reverse bool) (tcell.Style, tcell.Style) {
-		tabBarStyle := config.DefStyle.Reverse(reverse)
-		if style, ok := config.Colorscheme["tabbar"]; ok {
-			tabBarStyle = style
-		}
-		tabBarActiveStyle := tabBarStyle
-		if style, ok := config.Colorscheme["tabbar.active"]; ok {
-			tabBarActiveStyle = style
-		}
-		return tabBarStyle, tabBarActiveStyle
+	if style, ok := config.Colorscheme["tabbar"]; ok {
+		tabBarStyle = style
+	}
+	if globalTabReverse {
+		tabBarStyle = config.ReverseColor(tabBarStyle)
+	}
+	tabBarActiveStyle := tabBarStyle
+	if globalTabHighlight {
+		tabBarActiveStyle = config.ReverseColor(tabBarStyle)
+	}
+	if style, ok := config.Colorscheme["tabbar.active"]; ok {
+		tabBarActiveStyle = style
+	}
+	tabBarInactiveStyle := tabBarStyle
+	if style, ok := config.Colorscheme["tabbar.inactive"]; ok {
+		tabBarInactiveStyle = style
+	}
+	tabBarDivStyle := tabBarStyle
+	if style, ok := config.Colorscheme["tabbar.div"]; ok {
+		tabBarDivStyle = style
 	}
 
-	draw := func(r rune, n int, active bool, reversed bool) {
-		tabBarStyle, tabBarActiveStyle := reverseStyles(reversed)
-
+	draw := func(r rune, n int, active bool, tab bool, div bool) {
 		style := tabBarStyle
-		if active {
-			style = tabBarActiveStyle
+		if tab {
+			if active {
+				style = tabBarActiveStyle
+			} else {
+				style = tabBarInactiveStyle
+			}
+		} else if div {
+			style = tabBarDivStyle
 		}
+
 		for i := 0; i < n; i++ {
 			rw := runewidth.RuneWidth(r)
 			for j := 0; j < rw; j++ {
@@ -128,11 +142,11 @@ func (w *TabWindow) Display() {
 					c = ' '
 				}
 				if x == w.Width-1 && !done {
-					screen.SetContent(w.Width-1, w.Y, '>', nil, tabBarStyle)
+					screen.SetContent(w.Width-1, w.Y, '>', nil, style)
 					x++
 					break
 				} else if x == 0 && w.hscroll > 0 {
-					screen.SetContent(0, w.Y, '<', nil, tabBarStyle)
+					screen.SetContent(0, w.Y, '<', nil, style)
 				} else if x >= 0 && x < w.Width {
 					screen.SetContent(x, w.Y, c, nil, style)
 				}
@@ -141,15 +155,50 @@ func (w *TabWindow) Display() {
 		}
 	}
 
+	var tabactivechars string
+	var tabinactivechars string
+	var tabdivchars string
+	for _, entry := range strings.Split(config.GetGlobalOption("tabchars").(string), ",") {
+		split := strings.SplitN(entry, "=", 2)
+		if len(split) < 2 {
+			continue
+		}
+		key, val := split[0], split[1]
+		switch key {
+		case "active":
+			tabactivechars = val
+		case "inactive":
+			tabinactivechars = val
+		case "div":
+			tabdivchars = val
+		}
+	}
+
+	if utf8.RuneCountInString(tabactivechars) < 2 {
+		tabactivechars += strings.Repeat(" ", 2-utf8.RuneCountInString(tabactivechars))
+	}
+	if utf8.RuneCountInString(tabinactivechars) < 2 {
+		tabinactivechars += strings.Repeat(" ", 2-utf8.RuneCountInString(tabinactivechars))
+	}
+	if utf8.RuneCountInString(tabinactivechars) < 2 {
+		tabinactivechars += strings.Repeat(" ", 2-utf8.RuneCountInString(tabinactivechars))
+	}
+	tabdist := int(config.GetGlobalOption("tabdist").(float64))
+	if utf8.RuneCountInString(tabdivchars) < tabdist {
+		tabdivchars += strings.Repeat(" ", tabdist-utf8.RuneCountInString(tabdivchars))
+	}
+	tabactiverunes := []rune(tabactivechars)
+	tabinactiverunes := []rune(tabinactivechars)
+	tabdivrunes := []rune(tabdivchars)
 	for i, n := range w.Names {
 		if i == w.active {
-			draw('[', 1, true, tabCharHighlight)
+			draw(tabactiverunes[0], 1, true, true, false)
 		} else {
-			draw(' ', 1, false, tabCharHighlight)
+			draw(tabinactiverunes[0], 1, false, true, false)
 		}
 
 		for _, c := range n {
-			draw(c, 1, i == w.active, tabCharHighlight)
+			draw(c, 1, i == w.active, true, false)
 		}
 
 		if i == len(w.Names)-1 {
@@ -157,11 +206,13 @@ func (w *TabWindow) Display() {
 		}
 
 		if i == w.active {
-			draw(']', 1, true, tabCharHighlight)
-			draw(' ', 2, true, globalTabReverse)
+			draw(tabactiverunes[1], 1, true, true, false)
 		} else {
-			draw(' ', 1, false, tabCharHighlight)
-			draw(' ', 2, false, globalTabReverse)
+			draw(tabinactiverunes[1], 1, false, true, false)
+		}
+
+		for j := 0; j < tabdist; j++ {
+			draw(tabdivrunes[j], 1, false, false, true)
 		}
 
 		if x >= w.Width {
@@ -170,6 +221,6 @@ func (w *TabWindow) Display() {
 	}
 
 	if x < w.Width {
-		draw(' ', w.Width-x, false, globalTabReverse)
+		draw(' ', w.Width-x, false, false, false)
 	}
 }
