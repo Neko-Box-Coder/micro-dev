@@ -31,15 +31,26 @@ func (w *TabWindow) Resize(width, height int) {
 
 func (w *TabWindow) LocFromVisual(vloc buffer.Loc) int {
 	x := -w.hscroll
-
+	tabactiverunes, tabinactiverunes, tabdivrunes := GetTabRunes()
 	for i, n := range w.Names {
-		x++
+		if i == w.active {
+			x += len(tabactiverunes) / 2
+		} else {
+			x += len(tabinactiverunes) / 2
+		}
+
 		s := util.CharacterCountInString(n)
 		if vloc.Y == w.Y && vloc.X < x+s {
 			return i
 		}
 		x += s
-		x += 1 + int(config.GetGlobalOption("tabdist").(float64))
+
+		if i == w.active {
+			x += len(tabactiverunes) - len(tabactiverunes)/2
+		} else {
+			x += len(tabinactiverunes) - len(tabinactiverunes)/2
+		}
+		x += len(tabdivrunes)
 		if x >= w.Width {
 			break
 		}
@@ -90,6 +101,39 @@ func (w *TabWindow) SetActive(a int) {
 	if s-w.Width <= 0 {
 		w.hscroll = 0
 	}
+}
+
+func GetTabRunes() ([]rune, []rune, []rune) {
+	var tabactivechars string
+	var tabinactivechars string
+	var tabdivchars string
+	for _, entry := range strings.Split(config.GetGlobalOption("tabbarchars").(string), ",") {
+		split := strings.SplitN(entry, "=", 2)
+		if len(split) < 2 {
+			continue
+		}
+		key, val := split[0], split[1]
+		switch key {
+		case "active":
+			tabactivechars = val
+		case "inactive":
+			tabinactivechars = val
+		case "div":
+			tabdivchars = val
+		}
+	}
+
+	if utf8.RuneCountInString(tabactivechars) < 2 {
+		tabactivechars = ""
+	}
+	if utf8.RuneCountInString(tabinactivechars) < 2 {
+		tabinactivechars = ""
+	}
+
+	tabactiverunes := []rune(tabactivechars)
+	tabinactiverunes := []rune(tabinactivechars)
+	tabdivrunes := []rune(tabdivchars)
+	return tabactiverunes, tabinactiverunes, tabdivrunes
 }
 
 func (w *TabWindow) Display() {
@@ -155,46 +199,22 @@ func (w *TabWindow) Display() {
 		}
 	}
 
-	var tabactivechars string
-	var tabinactivechars string
-	var tabdivchars string
-	for _, entry := range strings.Split(config.GetGlobalOption("tabchars").(string), ",") {
-		split := strings.SplitN(entry, "=", 2)
-		if len(split) < 2 {
-			continue
-		}
-		key, val := split[0], split[1]
-		switch key {
-		case "active":
-			tabactivechars = val
-		case "inactive":
-			tabinactivechars = val
-		case "div":
-			tabdivchars = val
-		}
-	}
+	tabactiverunes, tabinactiverunes, tabdivrunes := GetTabRunes()
+	leftactiverunes := tabactiverunes[0 : len(tabactiverunes)/2]
+	rightactiverunes := tabactiverunes[len(tabactiverunes)/2:]
 
-	if utf8.RuneCountInString(tabactivechars) < 2 {
-		tabactivechars += strings.Repeat(" ", 2-utf8.RuneCountInString(tabactivechars))
-	}
-	if utf8.RuneCountInString(tabinactivechars) < 2 {
-		tabinactivechars += strings.Repeat(" ", 2-utf8.RuneCountInString(tabinactivechars))
-	}
-	if utf8.RuneCountInString(tabinactivechars) < 2 {
-		tabinactivechars += strings.Repeat(" ", 2-utf8.RuneCountInString(tabinactivechars))
-	}
-	tabdist := int(config.GetGlobalOption("tabdist").(float64))
-	if utf8.RuneCountInString(tabdivchars) < tabdist {
-		tabdivchars += strings.Repeat(" ", tabdist-utf8.RuneCountInString(tabdivchars))
-	}
-	tabactiverunes := []rune(tabactivechars)
-	tabinactiverunes := []rune(tabinactivechars)
-	tabdivrunes := []rune(tabdivchars)
+	leftinactiverunes := tabinactiverunes[0 : len(tabinactiverunes)/2]
+	rightinactiverunes := tabinactiverunes[len(tabinactiverunes)/2:]
+
 	for i, n := range w.Names {
 		if i == w.active {
-			draw(tabactiverunes[0], 1, true, true, false)
+			for j := 0; j < len(leftactiverunes); j++ {
+				draw(leftactiverunes[j], 1, true, true, false)
+			}
 		} else {
-			draw(tabinactiverunes[0], 1, false, true, false)
+			for j := 0; j < len(leftinactiverunes); j++ {
+				draw(leftinactiverunes[j], 1, false, true, false)
+			}
 		}
 
 		for _, c := range n {
@@ -206,12 +226,16 @@ func (w *TabWindow) Display() {
 		}
 
 		if i == w.active {
-			draw(tabactiverunes[1], 1, true, true, false)
+			for j := 0; j < len(rightactiverunes); j++ {
+				draw(rightactiverunes[j], 1, true, true, false)
+			}
 		} else {
-			draw(tabinactiverunes[1], 1, false, true, false)
+			for j := 0; j < len(rightinactiverunes); j++ {
+				draw(rightinactiverunes[j], 1, false, true, false)
+			}
 		}
 
-		for j := 0; j < tabdist; j++ {
+		for j := 0; j < len(tabdivrunes); j++ {
 			draw(tabdivrunes[j], 1, false, false, true)
 		}
 
