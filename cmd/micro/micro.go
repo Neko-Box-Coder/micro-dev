@@ -18,15 +18,15 @@ import (
 
 	"github.com/go-errors/errors"
 	isatty "github.com/mattn/go-isatty"
+	"github.com/micro-editor/micro/v2/internal/action"
+	"github.com/micro-editor/micro/v2/internal/buffer"
+	"github.com/micro-editor/micro/v2/internal/clipboard"
+	"github.com/micro-editor/micro/v2/internal/config"
+	"github.com/micro-editor/micro/v2/internal/screen"
+	"github.com/micro-editor/micro/v2/internal/shell"
+	"github.com/micro-editor/micro/v2/internal/util"
 	"github.com/micro-editor/tcell/v2"
 	lua "github.com/yuin/gopher-lua"
-	"github.com/zyedidia/micro/v2/internal/action"
-	"github.com/zyedidia/micro/v2/internal/buffer"
-	"github.com/zyedidia/micro/v2/internal/clipboard"
-	"github.com/zyedidia/micro/v2/internal/config"
-	"github.com/zyedidia/micro/v2/internal/screen"
-	"github.com/zyedidia/micro/v2/internal/shell"
-	"github.com/zyedidia/micro/v2/internal/util"
 )
 
 var (
@@ -363,6 +363,12 @@ func main() {
 		fmt.Println("Fatal: Micro could not initialize a Screen.")
 		exit(1)
 	}
+
+	util.Sigterm = make(chan os.Signal, 1)
+	sighup = make(chan os.Signal, 1)
+	signal.Notify(util.Sigterm, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGABRT)
+	signal.Notify(sighup, syscall.SIGHUP)
+
 	m := clipboard.SetMethod(config.GetGlobalOption("clipboard").(string))
 	clipErr := clipboard.Initialize(m)
 
@@ -374,7 +380,7 @@ func main() {
 			if e, ok := err.(*lua.ApiError); ok {
 				fmt.Println("Lua API error:", e)
 			} else {
-				fmt.Println("Micro encountered an error:", errors.Wrap(err, 2).ErrorStack(), "\nIf you can reproduce this error, please report it at https://github.com/zyedidia/micro/issues")
+				fmt.Println("Micro encountered an error:", errors.Wrap(err, 2).ErrorStack(), "\nIf you can reproduce this error, please report it at https://github.com/micro-editor/micro/issues")
 			}
 			// immediately backup all buffers with unsaved changes
 			for _, b := range buffer.OpenBuffers {
@@ -399,6 +405,8 @@ func main() {
 
 	action.InitBindings()
 	action.InitCommands()
+
+	timerChan = make(chan func())
 
 	err = config.RunPluginFn("preinit")
 	if err != nil {
@@ -443,13 +451,6 @@ func main() {
 	}
 
 	screen.Events = make(chan tcell.Event)
-
-	util.Sigterm = make(chan os.Signal, 1)
-	sighup = make(chan os.Signal, 1)
-	signal.Notify(util.Sigterm, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGABRT)
-	signal.Notify(sighup, syscall.SIGHUP)
-
-	timerChan = make(chan func())
 
 	// Here is the event loop which runs in a separate thread
 	go func() {

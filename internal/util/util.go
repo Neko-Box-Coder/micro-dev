@@ -38,9 +38,6 @@ var (
 	CompileDate = "Unknown"
 	// Debug logging
 	Debug = "OFF"
-	// FakeCursor is used to disable the terminal cursor and have micro
-	// draw its own (enabled for windows consoles where the cursor is slow)
-	FakeCursor = false
 
 	// Stdout is a buffer that is written to stdout when micro closes
 	Stdout *bytes.Buffer
@@ -93,10 +90,6 @@ func init() {
 		fmt.Println("Invalid version: ", Version, err)
 	}
 
-	_, wt := os.LookupEnv("WT_SESSION")
-	if runtime.GOOS == "windows" && !wt {
-		FakeCursor = true
-	}
 	Stdout = new(bytes.Buffer)
 }
 
@@ -494,6 +487,39 @@ func DetermineEscapePath(dir string, path string) (string, string) {
 	}
 
 	return url, ""
+}
+
+// ResolvePath provides the absolute file path for the given relative file path
+// as well as resolves symlinks. If it fails to get the absolute path or to
+// resolve symlinks, it returns unresolved path in place of resolved one.
+func ResolvePath(path string) string {
+	absPath, err := filepath.Abs(path)
+	if err != nil {
+		absPath = path
+	}
+
+	var remainder []string
+	for {
+		resolvedPath, err := filepath.EvalSymlinks(absPath)
+		if err == nil {
+			absPath = resolvedPath
+			break
+		}
+		if !errors.Is(err, fs.ErrNotExist) {
+			break
+		}
+
+		remainder = append([]string{filepath.Base(absPath)}, remainder...)
+		absPath = filepath.Dir(absPath)
+	}
+
+	if len(remainder) > 0 {
+		remainder = append([]string{absPath}, remainder...)
+		absPath = filepath.Join(remainder...)
+		absPath = filepath.Clean(absPath)
+	}
+
+	return absPath
 }
 
 // GetLeadingWhitespace returns the leading whitespace of the given byte array

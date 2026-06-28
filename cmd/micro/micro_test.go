@@ -7,12 +7,13 @@ import (
 	"testing"
 
 	"github.com/go-errors/errors"
+	"github.com/micro-editor/micro/v2/internal/action"
+	"github.com/micro-editor/micro/v2/internal/buffer"
+	"github.com/micro-editor/micro/v2/internal/config"
+	"github.com/micro-editor/micro/v2/internal/screen"
+	"github.com/micro-editor/micro/v2/internal/util"
 	"github.com/micro-editor/tcell/v2"
 	"github.com/stretchr/testify/assert"
-	"github.com/zyedidia/micro/v2/internal/action"
-	"github.com/zyedidia/micro/v2/internal/buffer"
-	"github.com/zyedidia/micro/v2/internal/config"
-	"github.com/zyedidia/micro/v2/internal/screen"
 )
 
 var tempDir string
@@ -157,8 +158,9 @@ func openFile(file string) {
 
 func findBuffer(file string) *buffer.Buffer {
 	var buf *buffer.Buffer
+	file = util.ResolvePath(file)
 	for _, b := range buffer.OpenBuffers {
-		if b.Path == file {
+		if b.AbsPath == file {
 			buf = b
 		}
 	}

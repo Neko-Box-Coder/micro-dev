@@ -133,6 +133,8 @@ Here are the available options:
 * `fakecursor`: forces micro to render the cursor using terminal colors rather
    than the actual terminal cursor. This is useful when the terminal's cursor is
    slow or otherwise unavailable/undesirable to use.
+   Note: This option defaults to `true` in case `micro` is used in the legacy
+   Windows Console.
 
     default value: `false`
 
@@ -320,11 +322,11 @@ Here are the available options:
    By default, this option points to the official plugin channel hosted on GitHub
    at https://github.com/micro-editor/plugin-channel.
 
-    default value: `https://raw.githubusercontent.com/micro-editor/plugin-channel/master/channel.json`
+    default value: `[https://raw.githubusercontent.com/micro-editor/plugin-channel/master/channel.json]`
 
 * `pluginrepos`: a list of links to plugin repositories.
 
-    default value: ``
+    default value: `[]` (empty list)
 
 * `readonly`: when enabled, disallows edits to the buffer. It is recommended
    to only ever set this option locally using `setlocal`.
@@ -409,7 +411,7 @@ Here are the available options:
    The color of the shown character is determined by the `indent-char`
    field in the current theme rather than the default text color.
 
-    default value: ``
+    default value: `""` (empty string)
 
 * `smartpaste`: add leading whitespace when pasting multiple lines.
    This will attempt to preserve the current indentation level when pasting an
@@ -460,6 +462,10 @@ Here are the available options:
 
     default value: `true`
 
+* `tabalways`: always shows the tab bar, even when only one tab is open.
+
+    default value: `false`
+
 * `tabbarchars`: sets what visual characters to be shown for various tabbar options.
    This option is specified in the form of `key1=value1,key2=value2,...`.
 
@@ -474,7 +480,8 @@ Here are the available options:
 
     default value: `div=│,active= [] ,inactive=  `
 
-* `tabhighlight`: highlighting the current active tab by using the inverted tab bar color.
+* `tabhighlight`: inverts the tab characters' (filename, save indicator, etc)
+   colors with respect to the tab bar.
    Has no effect if `tabbar.active` is present in the current colorscheme.
 
     default value: `true`
@@ -494,9 +501,9 @@ Here are the available options:
     default value: `4`
 
 * `tabstospaces`: use spaces instead of tabs. Note: This option will be
-   overridden by [the `ftoptions` plugin](https://github.com/zyedidia/micro/blob/master/runtime/plugins/ftoptions/ftoptions.lua)
+   overridden by [the `ftoptions` plugin](https://github.com/micro-editor/micro/blob/master/runtime/plugins/ftoptions/ftoptions.lua)
    for certain filetypes. To disable this behavior, add `"ftoptions": false` to
-   your config. See [issue #2213](https://github.com/zyedidia/micro/issues/2213)
+   your config. See [issue #2213](https://github.com/micro-editor/micro/issues/2213)
    for more details.
 
     default value: `false`
@@ -647,7 +654,8 @@ so that you can see what the formatting should look like.
     "statusline": true,
     "sucmd": "sudo",
     "syntax": true,
-    "tabhighlight": false,
+    "tabalways": false,
+    "tabhighlight": true,
     "tabmovement": false,
     "tabreverse": false,
     "tabsize": 4,
@@ -690,6 +698,21 @@ Or similarly you can match with globs:
 
 ```json
 {
+    "glob:*.go": {
+        "tabstospaces": false
+    },
+    "glob:*.rb": {
+        "tabsize": 2
+    },
+    "tabstospaces": true,
+    "tabsize": 4
+}
+```
+
+You can also omit the `glob:` prefix before globs:
+
+```json
+{
     "*.go": {
         "tabstospaces": false
     },
@@ -700,3 +723,6 @@ Or similarly you can match with globs:
     "tabsize": 4
 }
 ```
+
+But it is generally more recommended to use the `glob:` prefix, as it avoids
+potential conflicts with option names.

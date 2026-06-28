@@ -4,8 +4,8 @@ import (
 	"bytes"
 
 	runewidth "github.com/mattn/go-runewidth"
-	"github.com/zyedidia/micro/v2/internal/buffer"
-	"github.com/zyedidia/micro/v2/internal/util"
+	"github.com/micro-editor/micro/v2/internal/buffer"
+	"github.com/micro-editor/micro/v2/internal/util"
 )
 
 // SLoc represents a vertical scrolling location, i.e. a location of a visual line

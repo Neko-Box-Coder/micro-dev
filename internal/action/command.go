@@ -13,12 +13,12 @@ import (
 	"strings"
 
 	shellquote "github.com/kballard/go-shellquote"
-	"github.com/zyedidia/micro/v2/internal/buffer"
-	"github.com/zyedidia/micro/v2/internal/clipboard"
-	"github.com/zyedidia/micro/v2/internal/config"
-	"github.com/zyedidia/micro/v2/internal/screen"
-	"github.com/zyedidia/micro/v2/internal/shell"
-	"github.com/zyedidia/micro/v2/internal/util"
+	"github.com/micro-editor/micro/v2/internal/buffer"
+	"github.com/micro-editor/micro/v2/internal/clipboard"
+	"github.com/micro-editor/micro/v2/internal/config"
+	"github.com/micro-editor/micro/v2/internal/screen"
+	"github.com/micro-editor/micro/v2/internal/shell"
+	"github.com/micro-editor/micro/v2/internal/util"
 )
 
 // A Command contains information about how to execute a command
@@ -164,9 +164,11 @@ func (h *BufPane) TextFilterCmd(args []string) {
 		InfoBar.Error("usage: textfilter arguments")
 		return
 	}
+
 	for _, c := range h.Buf.GetCursors() {
 		sel := c.GetSelection()
-		if len(sel) == 0 {
+		fromSelection := len(sel) > 0
+		if !fromSelection {
 			c.SelectWord()
 			sel = c.GetSelection()
 		}
@@ -181,7 +183,18 @@ func (h *BufPane) TextFilterCmd(args []string) {
 			return
 		}
 		c.DeleteSelection()
-		h.Buf.Insert(c.Loc, bout.String())
+		insertStart := c.Loc
+		insertedText := bout.String()
+		h.Buf.Insert(c.Loc, insertedText)
+
+		if fromSelection {
+			// Select the pasted output if the input was selected
+			charCount := util.CharacterCountInString(insertedText)
+			insertEnd := insertStart.Move(charCount, h.Buf)
+			c.SetSelectionStart(insertStart)
+			c.SetSelectionEnd(insertEnd)
+			c.Loc = insertEnd
+		}
 	}
 }
 
@@ -314,20 +327,8 @@ func (h *BufPane) PwdCmd(args []string) {
 // OpenCmd opens a new buffer with a given filename
 func (h *BufPane) OpenCmd(args []string) {
 	if len(args) > 0 {
-		filename := args[0]
-		// the filename might or might not be quoted, so unquote first then join the strings.
-		args, err := shellquote.Split(filename)
-		if err != nil {
-			InfoBar.Error("Error parsing args ", err)
-			return
-		}
-		if len(args) == 0 {
-			return
-		}
-		filename = strings.Join(args, " ")
-
 		open := func() {
-			b, err := buffer.NewBufferFromFile(filename, buffer.BTDefault)
+			b, err := buffer.NewBufferFromFile(args[0], buffer.BTDefault)
 			if err != nil {
 				InfoBar.Error(err)
 				return
@@ -471,7 +472,7 @@ func (h *BufPane) openHelp(page string, hsplit bool, forceSplit bool) error {
 }
 
 // HelpCmd tries to open the given help page according to the split type
-// configured with the "helpsplit" option. It can be overriden by the optional
+// configured with the "helpsplit" option. It can be overridden by the optional
 // arguments "-vpslit" or "-hsplit". In case more than one help page is given
 // as argument then it opens all of them with the defined split type.
 func (h *BufPane) HelpCmd(args []string) {
@@ -610,7 +611,7 @@ func doSetGlobalOptionNative(option string, nativeValue any) error {
 		for _, b := range buffer.OpenBuffers {
 			b.UpdateRules()
 		}
-	} else if option == "infobar" || option == "keymenu" {
+	} else if option == "infobar" || option == "keymenu" || option == "tabalways" {
 		Tabs.Resize()
 	} else if option == "mouse" {
 		if !nativeValue.(bool) {

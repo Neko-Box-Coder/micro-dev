@@ -15,9 +15,9 @@ import (
 
 	"github.com/blang/semver"
 	"github.com/micro-editor/json5"
+	ulua "github.com/micro-editor/micro/v2/internal/lua"
+	"github.com/micro-editor/micro/v2/internal/util"
 	lua "github.com/yuin/gopher-lua"
-	ulua "github.com/zyedidia/micro/v2/internal/lua"
-	"github.com/zyedidia/micro/v2/internal/util"
 )
 
 var (
@@ -135,16 +135,16 @@ func (pc PluginChannel) Fetch(out io.Writer) PluginPackages {
 	}
 	resp, err := client.Get(string(pc))
 	if err != nil {
-		fmt.Fprintln(out, "Failed to query plugin channel ", pc, " with error:\n", err)
-		return PluginPackages{}
+		fmt.Fprintln(out, "Failed to query plugin channel:\n", err)
+		return nil
 	}
 	defer resp.Body.Close()
 	decoder := json5.NewDecoder(resp.Body)
 
 	var repositories []PluginRepository
 	if err := decoder.Decode(&repositories); err != nil {
-		fmt.Fprintln(out, "Failed to decode channel data", pc, ":\n", err)
-		return PluginPackages{}
+		fmt.Fprintln(out, "Failed to decode channel data:\n", err)
+		return nil
 	}
 	return fetchAllSources(len(repositories), func(i int) PluginPackages {
 		return repositories[i].Fetch(out)
@@ -158,16 +158,26 @@ func (pr PluginRepository) Fetch(out io.Writer) PluginPackages {
 	}
 	resp, err := client.Get(string(pr))
 	if err != nil {
-		fmt.Fprintln(out, "Failed to query plugin repository", pr)
-		return PluginPackages{}
+		fmt.Fprintln(out, "Failed to query plugin repository:\n", err)
+		return nil
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		fmt.Fprintf(out, "Skipped: %s\n", pr)
+		fmt.Fprintf(out, " Reason: Server error %d (%s)\n", resp.StatusCode,
+			http.StatusText(resp.StatusCode))
+		return nil
+	}
+
 	decoder := json5.NewDecoder(resp.Body)
 
 	var plugins PluginPackages
 	if err := decoder.Decode(&plugins); err != nil {
-		fmt.Fprintln(out, "Failed to decode repository data", pr, ":\n", err)
-		return PluginPackages{}
+		fmt.Fprintf(out, "Skipped: %s\n", pr)
+		fmt.Fprintf(out, " Reason: Failed to decode repository data:\n")
+		fmt.Fprintf(out, " %s\n", err)
+		return nil
 	}
 	if len(plugins) > 0 {
 		return PluginPackages{plugins[0]}
