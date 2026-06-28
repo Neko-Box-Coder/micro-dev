@@ -23,37 +23,19 @@ func (b *Buffer) GetSuggestions() {
 
 }
 
-func AutocompleteRuneCheck(cursor *Cursor) bool {
-	r := cursor.RuneUnder(cursor.X)
-	prev := cursor.RuneUnder(cursor.X - 1)
-	if !util.IsAutocomplete(prev) || util.IsWordChar(r) {
-		// don't autocomplete if cursor is within a word
-		return false
-	}
-	return true
-}
-
-func AutocompleteCursorCheck(cursor *Cursor) bool {
-	if cursor.HasSelection() {
-		return false
-	}
-	if cursor.X == 0 {
-		return false
-	}
-	return true
-}
-
-func (b *Buffer) StartAutocomplete(c Completer) bool {
+// Autocomplete starts the autocomplete process
+func (b *Buffer) Autocomplete(c Completer) bool {
 	b.Completions, b.Suggestions = c(b)
 	if len(b.Completions) != len(b.Suggestions) || len(b.Completions) == 0 {
 		return false
 	}
 	b.CurSuggestion = -1
+	b.CycleAutocomplete(true)
 	return true
 }
 
-// CycleAutocomplete moves to the next suggestion and return the previous suggestion
-func (b *Buffer) CycleAutocomplete(forward bool) int {
+// CycleAutocomplete moves to the next suggestion
+func (b *Buffer) CycleAutocomplete(forward bool) {
 	prevSuggestion := b.CurSuggestion
 
 	if forward {
@@ -67,25 +49,17 @@ func (b *Buffer) CycleAutocomplete(forward bool) int {
 		b.CurSuggestion = len(b.Suggestions) - 1
 	}
 
+	c := b.GetActiveCursor()
+	start := c.Loc
+	end := c.Loc
+	if prevSuggestion < len(b.Suggestions) && prevSuggestion >= 0 {
+		start = end.Move(-util.CharacterCountInString(b.Completions[prevSuggestion]), b)
+	}
+
+	b.Replace(start, end, b.Completions[b.CurSuggestion])
 	if len(b.Suggestions) > 1 {
 		b.HasSuggestions = true
 	}
-
-	return prevSuggestion
-}
-
-func (b *Buffer) PerformSingleAutocomplete(prevSuggestion int, cursor *Cursor) {
-	curLoc := cursor.Loc
-	curStart := curLoc
-	curEnd := curLoc
-
-	if prevSuggestion < len(b.Suggestions) && prevSuggestion >= 0 {
-		curStart = curEnd.Move(-util.CharacterCountInString(b.Completions[prevSuggestion]), b)
-	}
-
-	hasSuggestions := b.HasSuggestions
-	b.Replace(curStart, curEnd, b.Completions[b.CurSuggestion])
-	b.HasSuggestions = hasSuggestions
 }
 
 // GetWord gets the most recent word separated by any separator

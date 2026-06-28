@@ -901,22 +901,27 @@ func (h *BufPane) OutdentSelection() bool {
 // Autocomplete cycles the suggestions and performs autocompletion if there are suggestions
 func (h *BufPane) Autocomplete() bool {
 	b := h.Buf
-	cc := buffer.AutocompleteCursorCheck(h.Cursor)
-	rc := buffer.AutocompleteRuneCheck(h.Cursor)
 
-	// Don't autocomplete at all if the active cursor cannot be autocomplete
-	if !b.HasSuggestions && (!rc || !cc || !b.StartAutocomplete(buffer.BufferComplete)) {
+	if h.Cursor.HasSelection() {
 		return false
 	}
 
-	prevSuggestion := b.CycleAutocomplete(true)
-	for i := 0; i < b.NumCursors(); i++ {
-		if buffer.AutocompleteCursorCheck(b.GetCursor(i)) {
-			b.PerformSingleAutocomplete(prevSuggestion, b.GetCursor(i))
-		}
+	if b.HasSuggestions {
+		b.CycleAutocomplete(true)
+		return true
 	}
 
-	return true
+	if h.Cursor.X == 0 {
+		return false
+	}
+	r := h.Cursor.RuneUnder(h.Cursor.X)
+	prev := h.Cursor.RuneUnder(h.Cursor.X - 1)
+	if !util.IsAutocomplete(prev) || util.IsWordChar(r) {
+		// don't autocomplete if cursor is within a word
+		return false
+	}
+
+	return b.Autocomplete(buffer.BufferComplete)
 }
 
 // CycleAutocompleteBack cycles back in the autocomplete suggestion list
@@ -925,14 +930,8 @@ func (h *BufPane) CycleAutocompleteBack() bool {
 		return false
 	}
 
-	b := h.Buf
-	if b.HasSuggestions {
-		prevSuggestion := b.CycleAutocomplete(false)
-		for i := 0; i < b.NumCursors(); i++ {
-			if buffer.AutocompleteCursorCheck(b.GetCursor(i)) {
-				b.PerformSingleAutocomplete(prevSuggestion, b.GetCursor(i))
-			}
-		}
+	if h.Buf.HasSuggestions {
+		h.Buf.CycleAutocomplete(false)
 		return true
 	}
 	return false

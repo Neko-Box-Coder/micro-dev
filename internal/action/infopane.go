@@ -191,52 +191,30 @@ func (h *InfoPane) HistorySearchDown() {
 // Autocomplete begins autocompletion
 func (h *InfoPane) CommandComplete() {
 	b := h.Buf
-	c := b.GetActiveCursor()
-
-	cc := buffer.AutocompleteCursorCheck(c)
-	rc := buffer.AutocompleteRuneCheck(c)
-
-	// Cycling commands
-	if !b.HasSuggestions && !cc && !rc {
-		return
-	}
-
 	if b.HasSuggestions {
-		if !cc {
-			return
-		}
-
-		prevSuggestion := b.CycleAutocomplete(true)
-		b.PerformSingleAutocomplete(prevSuggestion, c)
+		b.CycleAutocomplete(true)
 		return
 	}
 
-	// Otherwise start autocomplete
+	c := b.GetActiveCursor()
 	l := b.LineBytes(0)
 	l = util.SliceStart(l, c.X)
+
 	args := bytes.Split(l, []byte{' '})
 	cmd := string(args[0])
 
-	var completer buffer.Completer = nil
-
 	if h.PromptType == "Command" {
 		if len(args) == 1 {
-			completer = CommandComplete
+			b.Autocomplete(CommandComplete)
 		} else if action, ok := commands[cmd]; ok {
-			completer = action.completer
+			if action.completer != nil {
+				b.Autocomplete(action.completer)
+			}
 		}
 	} else {
 		// by default use filename autocompletion
-		completer = buffer.FileComplete
+		b.Autocomplete(buffer.FileComplete)
 	}
-	if completer == nil {
-		return
-	}
-	if !b.StartAutocomplete(completer) {
-		return
-	}
-	prevSuggestion := b.CycleAutocomplete(true)
-	b.PerformSingleAutocomplete(prevSuggestion, c)
 }
 
 // ExecuteCommand completes the prompt
