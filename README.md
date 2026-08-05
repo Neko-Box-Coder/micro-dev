@@ -18,6 +18,8 @@
 > - [Allow multi-cursor to work properly for autoclose plugin #3886](https://github.com/zyedidia/micro/pull/3886)
 > - [Adding tabbar customization options, fixing tabhighlight and tabreverse to work as intended. #3954](https://github.com/zyedidia/micro/pull/3954)
 > - [Allowing plugin to add cursor in custom Loc #3441](https://github.com/zyedidia/micro/pull/3441)
+> - [Add multicursor autocompletions #4028](https://github.com/micro-editor/micro/pull/4028)
+> - [fix highlighter bugs - #4022](https://github.com/micro-editor/micro/pull/4022)
 >
 > To see the diff between this and upstream master, click [here](https://github.com/zyedidia/micro/compare/master...Neko-Box-Coder:micro-dev:dev)
 
